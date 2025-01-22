@@ -2,8 +2,15 @@
 #include "Window.h"
 #include "Graphics.h"
 #include "Input.h"
+#include <imgui_impl_win32.h>
 
 #include <sstream>
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(
+	HWND hWnd,
+	UINT msg,
+	WPARAM wParam,
+	LPARAM lParam);
 
 namespace Window
 {
@@ -253,6 +260,12 @@ void Window::CreateConsoleWindow(int bufferLines, int bufferColumns, int windowL
 // --------------------------------------------------------
 LRESULT Window::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	// Call ImGui’s message handler and exit early if necessary
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
+	{
+		return true;
+	}
+
 	// Check the incoming message and handle any we care about
 	switch (uMsg)
 	{
