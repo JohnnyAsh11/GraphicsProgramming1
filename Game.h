@@ -2,9 +2,19 @@
 
 #include <d3d11.h>
 #include <wrl/client.h>
+#include <DirectXMath.h>
+
+using namespace DirectX;
 
 class Game
 {
+private:
+	float m_fBackgroundColor[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
+	bool m_bDemoVisibility;
+	XMFLOAT4 m_fColor1 = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);  // Red.
+	XMFLOAT4 m_fColor2 = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);  // Green.
+	XMFLOAT4 m_fColor3 = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);  // Blue.
+
 public:
 	// Basic OOP setup
 	Game() = default;
@@ -23,7 +33,7 @@ private:
 	// Initialization helper methods - feel free to customize, combine, remove, etc.
 	void LoadShaders();
 	void CreateGeometry();
-	void UpdateImGui(float deltaTime);
+	void ConstructImGui(float deltaTime);
 
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
