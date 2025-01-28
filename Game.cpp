@@ -11,9 +11,9 @@
 #pragma comment(lib, "d3dcompiler.lib")
 #include <d3dcompiler.h>
 
-#include <imgui.h>
-#include <imgui_impl_dx11.h>
-#include <imgui_impl_win32.h>
+#include "ImGui/imgui.h"
+#include "ImGui/imgui_impl_dx11.h"
+#include "ImGui/imgui_impl_win32.h"
 
 // For the DirectX Math library
 using namespace DirectX;
@@ -180,7 +180,7 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
-	UpdateImGui(deltaTime);
+	ConstructImGui(deltaTime);
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE))
@@ -191,22 +191,56 @@ void Game::Update(float deltaTime, float totalTime)
 /// Helper method for updating the logic within ImGui.
 /// </summary>
 /// <param name="deltaTime"></param>
-void Game::UpdateImGui(float deltaTime)
+void Game::ConstructImGui(float deltaTime)
 {
 	// Feed fresh data to ImGui
-	//ImGuiIO& io = ImGui::GetIO();
-	//io.DeltaTime = deltaTime;
-	//io.DisplaySize.x = (float)Window::Width();
-	//io.DisplaySize.y = (float)Window::Height();
-	//// Reset the frame
-	//ImGui_ImplDX11_NewFrame();
-	//ImGui_ImplWin32_NewFrame();
-	//ImGui::NewFrame();
-	//// Determine new input capture
-	//Input::SetKeyboardCapture(io.WantCaptureKeyboard);
-	//Input::SetMouseCapture(io.WantCaptureMouse);
-	//// Show the demo window
-	//ImGui::ShowDemoWindow();
+	ImGuiIO& io = ImGui::GetIO();
+	io.DeltaTime = deltaTime;
+	io.DisplaySize.x = (float)Window::Width();
+	io.DisplaySize.y = (float)Window::Height();
+	// Reset the frame
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+	// Determine new input capture
+	Input::SetKeyboardCapture(io.WantCaptureKeyboard);
+	Input::SetMouseCapture(io.WantCaptureMouse);
+
+	// Setting what is inside of the Gui.
+	ImGui::Begin("Application Settings");
+
+	// Framerate:
+	ImGui::Text("Framerate: %f fps", ImGui::GetIO().Framerate);
+	// Window resolution:
+	ImGui::Text("Window Resolution: %dx%d", Window::Width(), Window::Height());
+
+	// Editing the color of the background.
+	ImGui::ColorEdit4("Background Color", m_fBackgroundColor);
+
+	// Changing the visibility of the ImGui demo window.
+	if (m_bDemoVisibility)
+	{
+		ImGui::ShowDemoWindow();
+	}
+	if (ImGui::Button("Show ImGui Demo Window"))
+	{
+		m_bDemoVisibility = !m_bDemoVisibility;
+	}
+
+	// Triangle color editing.
+	if (ImGui::Button("Reload Triangle Colors"))
+	{
+		// I could not figure out how to reassemble the 
+		// Vertex Buffer with the new colors without memory leaks
+		//CreateGeometry();
+	}
+	ImGui::ColorEdit4("Color 1", &m_fColor1.x);
+	ImGui::ColorEdit4("Color 2", &m_fColor2.x);
+	ImGui::ColorEdit4("Color 3", &m_fColor3.x);
+
+	// Closing the sub window.
+	ImGui::End();
+
 }
 
 // --------------------------------------------------------
@@ -219,8 +253,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	// - At the beginning of Game::Draw() before drawing *anything*
 	{
 		// Clear the back buffer (erase what's on screen) and depth buffer
-		const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
-		Graphics::Context->ClearRenderTargetView(Graphics::BackBufferRTV.Get(),	color);
+		Graphics::Context->ClearRenderTargetView(Graphics::BackBufferRTV.Get(),	m_fBackgroundColor);
 		Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
