@@ -12,9 +12,6 @@ class Game
 private:
 	float m_fBackgroundColor[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
 	bool m_bDemoVisibility;
-	XMFLOAT4 m_fColor1 = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);  // Red.
-	XMFLOAT4 m_fColor2 = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);  // Green.
-	XMFLOAT4 m_fColor3 = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);  // Blue.
 
 public:
 	// Basic OOP setup
@@ -41,9 +38,9 @@ private:
 	//  - More info here: https://github.com/Microsoft/DirectXTK/wiki/ComPtr
 
 	// Creating 3 Mesh fields:
-	Mesh* m_mMesh1;
-	Mesh* m_mMesh2;
-	Mesh* m_mMesh3;
+	Mesh* m_mMesh1 = nullptr;
+	Mesh* m_mMesh2 = nullptr;
+	Mesh* m_mMesh3 = nullptr;
 
 	// Shaders and shader-related constructs
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;

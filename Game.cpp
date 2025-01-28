@@ -71,13 +71,15 @@ void Game::Initialize()
 	indices = new unsigned int[36];
 	for (int i = 0; i < 36; i++) indices[i] = i;
 
-	// Setting the vertices.
-	float fDeltaAngle = (2.0f * 3.14159265358979323846f) / 12;
-	float fRadius = 0.5f;
-	XMFLOAT3 fOrigin = XMFLOAT3(-0.5f, +0.0f, +0.0f);
+	// Setting some variables for creating the circle.
+	int dSubsivisions = 12;
+	float fDeltaAngle = (2.0f * 3.14159265358979323846f) / dSubsivisions;
+	float fRadius = 0.25f;
+	XMFLOAT3 fOrigin = XMFLOAT3(-0.6f, +0.0f, +0.0f);
 	std::vector<XMFLOAT3> vertexPositions;
 
-	for (int i = 0; i < 6; i++)
+	// Creating the vertices.
+	for (int i = 0; i < dSubsivisions; i++)
 	{
 		vertexPositions.push_back(XMFLOAT3(
 			cos(fDeltaAngle * i) * fRadius + fOrigin.x,
@@ -85,16 +87,17 @@ void Game::Initialize()
 			0.0f));
 	}
 
-	for (int i = 0; i < 6; i++)
+	// Populating the Vertex Buffer with the proper order of vertices.
+	for (int i = 0; i < dSubsivisions; i++)
 	{
 		int j = i * 3;
-		vertices[j] = { fOrigin, PURPLE };
-		vertices[j + 2] = { vertexPositions[i], PURPLE };
-		vertices[j + 1] = { vertexPositions[(i + 1) % 6], PURPLE };
+		vertices[j] = { fOrigin, YELLOW };
+		vertices[j + 2] = { vertexPositions[i], BLUE };
+		vertices[j + 1] = { vertexPositions[(i + 1) % dSubsivisions], BLUE };
 	}
 
 	// Instantiating the mesh object.
-	m_mMesh3 = new Mesh(vertices, 20, indices, 20);
+	m_mMesh3 = new Mesh(vertices, 36, indices, 36);
 
 	delete[] vertices;
 	delete[] indices;
@@ -281,17 +284,6 @@ void Game::UpdateImGui(float deltaTime)
 	{
 		m_bDemoVisibility = !m_bDemoVisibility;
 	}
-
-	// Triangle color editing.
-	if (ImGui::Button("Reload Triangle Colors"))
-	{
-		// I could not figure out how to reassemble the 
-		// Vertex Buffer with the new colors without memory leaks
-		//CreateGeometry();
-	}
-	ImGui::ColorEdit4("Color 1", &m_fColor1.x);
-	ImGui::ColorEdit4("Color 2", &m_fColor2.x);
-	ImGui::ColorEdit4("Color 3", &m_fColor3.x);
 
 	// Closing the sub window.
 	ImGui::End();
