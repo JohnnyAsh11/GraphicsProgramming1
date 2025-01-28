@@ -49,12 +49,12 @@ void Game::Initialize()
 	delete[] vertices;
 
 	// Initialize ImGui itself & platform/renderer backends
-	//IMGUI_CHECKVERSION();
-	//ImGui::CreateContext();
-	//ImGui_ImplWin32_Init(Window::Handle());
-	//ImGui_ImplDX11_Init(Graphics::Device.Get(), Graphics::Context.Get());
-	//// Pick a style (uncomment one of these 3)
-	//ImGui::StyleColorsDark();
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGui_ImplWin32_Init(Window::Handle());
+	ImGui_ImplDX11_Init(Graphics::Device.Get(), Graphics::Context.Get());
+	// Pick a style (uncomment one of these 3)
+	ImGui::StyleColorsDark();
 
 	// Set initial graphics API state
 	//  - These settings persist until we change them
@@ -89,9 +89,9 @@ void Game::Initialize()
 Game::~Game()
 {
 	// ImGui clean up
-	//ImGui_ImplDX11_Shutdown();
-	//ImGui_ImplWin32_Shutdown();
-	//ImGui::DestroyContext();
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
 }
 
 
@@ -180,7 +180,7 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
-	ConstructImGui(deltaTime);
+	UpdateImGui(deltaTime);
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE))
@@ -191,7 +191,7 @@ void Game::Update(float deltaTime, float totalTime)
 /// Helper method for updating the logic within ImGui.
 /// </summary>
 /// <param name="deltaTime"></param>
-void Game::ConstructImGui(float deltaTime)
+void Game::UpdateImGui(float deltaTime)
 {
 	// Feed fresh data to ImGui
 	ImGuiIO& io = ImGui::GetIO();
@@ -261,6 +261,10 @@ void Game::Draw(float deltaTime, float totalTime)
 	// DRAW HERE:
 
 	m_mMesh1.Draw();
+
+	// Rendering ImGui
+	ImGui::Render(); // Turns this frame’s UI into renderable triangles
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 	//---------------------------------------------------------------
 
