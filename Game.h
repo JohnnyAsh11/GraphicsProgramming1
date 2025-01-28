@@ -42,7 +42,7 @@ private:
 
 	// Creating 3 Mesh fields:
 	Mesh m_mMesh1;
-	//Mesh m_mMesh2;
+	Mesh m_mMesh2;
 	//Mesh m_mMesh3;
 
 	// Shaders and shader-related constructs

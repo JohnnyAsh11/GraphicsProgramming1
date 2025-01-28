@@ -47,7 +47,12 @@ Mesh::Mesh(Vertex* a_pVertices, int a_dVertexCount, unsigned int* a_pIndices, in
 }
 
 #pragma region Rule of Three
-Mesh::~Mesh() { }
+Mesh::~Mesh() 
+{
+	// Freeing memory.
+	m_pVertexBuffer.Reset();
+	m_pIndexBuffer.Reset();
+}
 Mesh::Mesh(const Mesh& a_pOther) 
 {
 	// Setting values.
