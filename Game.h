@@ -2,6 +2,7 @@
 
 #include <d3d11.h>
 #include <wrl/client.h>
+#include "Mesh.h"
 
 class Game
 {
@@ -22,7 +23,6 @@ private:
 
 	// Initialization helper methods - feel free to customize, combine, remove, etc.
 	void LoadShaders();
-	void CreateGeometry();
 	void UpdateImGui(float deltaTime);
 
 	// Note the usage of ComPtr below
@@ -30,9 +30,10 @@ private:
 	//     Component Object Model, which DirectX objects do
 	//  - More info here: https://github.com/Microsoft/DirectXTK/wiki/ComPtr
 
-	// Buffers to hold actual geometry data
-	Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
+	// Creating 3 Mesh fields:
+	Mesh m_mMesh1;
+	//Mesh m_mMesh2;
+	//Mesh m_mMesh3;
 
 	// Shaders and shader-related constructs
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
