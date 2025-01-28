@@ -30,8 +30,6 @@ public:
 	/// <param name="a_dIndexCount">The amount of indices in the array.</param>
 	Mesh(Vertex* a_pVertices, int a_dVertexCount, unsigned int* a_pIndices, int a_dIndexCount);
 
-	Mesh();
-
 	#pragma region Rule of Three
 	/// <summary>
 	/// Destructs instances of the Mesh object.

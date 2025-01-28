@@ -4,8 +4,6 @@
 
 using namespace DirectX;
 
-Mesh::Mesh() {}
-
 Mesh::Mesh(Vertex* a_pVertices, int a_dVertexCount, unsigned int* a_pIndices, int a_dIndexCount)
 {
 	// Saving the passed in values to the member fields.

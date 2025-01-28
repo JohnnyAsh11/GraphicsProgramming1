@@ -6,6 +6,7 @@
 #include "Window.h"
 
 #include "Colors.h"
+#include <vector>
 
 // Needed for a helper function to load pre-compiled shader files
 #pragma comment(lib, "d3dcompiler.lib")
@@ -29,39 +30,75 @@ void Game::Initialize()
 	//  - You'll be expanding and/or replacing these later
 	LoadShaders();
 
+	// Setting the Vertices of the first triangle.
 	Vertex* vertices = new Vertex[3];
 	vertices[0] = { XMFLOAT3(+0.0f, +0.25f, +0.0f), RED };
 	vertices[1] = { XMFLOAT3(+0.25f, -0.25f, +0.0f), GREEN };
 	vertices[2] = { XMFLOAT3(-0.25f, -0.25f, +0.0f), BLUE };
 	
+	// Setting the indices of the first triangle.
 	unsigned int* indices = new unsigned int[3];
-	indices[0] = 0;
-	indices[1] = 1;
-	indices[2] = 2;
+	for (int i = 0; i < 3; i++) indices[i] = i;
 	
-	m_mMesh1 = Mesh(vertices, 3, indices, 3);
+	// Instantiating the first mesh.
+	m_mMesh1 = new Mesh(vertices, 3, indices, 3);
 	
 	delete[] indices;
 	delete[] vertices;	
 
+	// Setting the indices for the square.
 	indices = new unsigned int[6];
 	for (int i = 0; i < 6; i++) indices[i] = i;
 
+	// Setting the vertices for the square.
 	vertices = new Vertex[6];
 	vertices[0] = { XMFLOAT3(+0.9f, +0.25f, +0.0f), PURPLE };		// Center
 	vertices[1] = { XMFLOAT3(+0.9f, -0.5f, +0.0f), ORANGE };		// Bottom Right
 	vertices[2] = { XMFLOAT3(+0.5f, -0.5f, +0.0f), ORANGE };		// Bottom Left
 
-	vertices[3] = { XMFLOAT3(+0.5f, -0.5f, +0.0f), ORANGE };			// Center
-	vertices[5] = { XMFLOAT3(+0.9f, +0.25f, +0.0f), PURPLE };			// Top Right
-	vertices[4] = { XMFLOAT3(+0.5f, +0.25f, +0.0f), PURPLE };			// Top Left
+	vertices[3] = { XMFLOAT3(+0.5f, -0.5f, +0.0f), ORANGE };		// Center
+	vertices[5] = { XMFLOAT3(+0.9f, +0.25f, +0.0f), PURPLE };		// Top Right
+	vertices[4] = { XMFLOAT3(+0.5f, +0.25f, +0.0f), PURPLE };		// Top Left
 	
-	m_mMesh2 = Mesh(vertices, 6, indices, 6);
+	// Instantiating the square mesh.
+	m_mMesh2 = new Mesh(vertices, 6, indices, 6);
 	
 	delete[] vertices;
 	delete[] indices;
 
+	// Allocating the memory for both buffers.  Also setting the index values.
+	vertices = new Vertex[36];
+	indices = new unsigned int[36];
+	for (int i = 0; i < 36; i++) indices[i] = i;
 
+	// Setting the vertices.
+	float fDeltaAngle = (2.0f * 3.14159265358979323846f) / 12;
+	float fRadius = 0.5f;
+	XMFLOAT3 fOrigin = XMFLOAT3(-0.5f, +0.0f, +0.0f);
+	std::vector<XMFLOAT3> vertexPositions;
+
+	for (int i = 0; i < 6; i++)
+	{
+		vertexPositions.push_back(XMFLOAT3(
+			cos(fDeltaAngle * i) * fRadius + fOrigin.x,
+			sin(fDeltaAngle * i) * fRadius + fOrigin.y,
+			0.0f));
+	}
+
+	for (int i = 0; i < 6; i++)
+	{
+		int j = i * 3;
+		vertices[j] = { fOrigin, PURPLE };
+		vertices[j + 2] = { vertexPositions[i], PURPLE };
+		vertices[j + 1] = { vertexPositions[(i + 1) % 6], PURPLE };
+	}
+
+	// Instantiating the mesh object.
+	m_mMesh3 = new Mesh(vertices, 20, indices, 20);
+
+	delete[] vertices;
+	delete[] indices;
+	
 	// Initialize ImGui itself & platform/renderer backends
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -102,6 +139,10 @@ void Game::Initialize()
 // --------------------------------------------------------
 Game::~Game()
 {
+	delete m_mMesh1;
+	delete m_mMesh2;
+	delete m_mMesh3;
+
 	// ImGui clean up
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
@@ -274,9 +315,9 @@ void Game::Draw(float deltaTime, float totalTime)
 	//---------------------------------------------------------------
 	// DRAW HERE:
 	
-	m_mMesh1.Draw();
-	m_mMesh2.Draw();
-	
+	m_mMesh1->Draw();
+	m_mMesh2->Draw();
+	m_mMesh3->Draw();	
 
 	// Rendering ImGui
 	ImGui::Render(); // Turns this frame’s UI into renderable triangles

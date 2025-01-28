@@ -41,9 +41,9 @@ private:
 	//  - More info here: https://github.com/Microsoft/DirectXTK/wiki/ComPtr
 
 	// Creating 3 Mesh fields:
-	Mesh m_mMesh1;
-	Mesh m_mMesh2;
-	//Mesh m_mMesh3;
+	Mesh* m_mMesh1;
+	Mesh* m_mMesh2;
+	Mesh* m_mMesh3;
 
 	// Shaders and shader-related constructs
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
