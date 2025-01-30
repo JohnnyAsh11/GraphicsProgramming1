@@ -7,6 +7,13 @@
 
 using namespace DirectX;
 
+// FOR IN CLASS DEMO
+struct VertexShaderExternalData
+{
+	XMFLOAT4 color;
+	XMFLOAT3 offset;
+};
+
 class Game
 {
 private:
@@ -46,5 +53,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
+	
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_pConstantBuffer;
 };
 

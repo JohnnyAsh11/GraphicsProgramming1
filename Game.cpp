@@ -30,6 +30,7 @@ void Game::Initialize()
 	//  - You'll be expanding and/or replacing these later
 	LoadShaders();
 
+#pragma region Meshes
 	// Setting the Vertices of the first triangle.
 	Vertex* vertices = new Vertex[3];
 	vertices[0] = { XMFLOAT3(+0.0f, +0.25f, +0.0f), RED };
@@ -101,7 +102,30 @@ void Game::Initialize()
 
 	delete[] vertices;
 	delete[] indices;
+#pragma endregion
 	
+	unsigned int cBufferSize = sizeof(VertexShaderExternalData);
+	// Calculating the memory size in multiples of 16 by taking
+	//  advantage of int division.
+	cBufferSize = ((cBufferSize + 15) / 16) * 16;
+
+	D3D11_BUFFER_DESC cbDesc{};
+	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cbDesc.ByteWidth = cBufferSize;
+	cbDesc.MiscFlags = 0;
+	cbDesc.StructureByteStride = 0;
+
+	// Creating the buffer with the description struct.
+	Graphics::Device->CreateBuffer(&cbDesc, 0, m_pConstantBuffer.GetAddressOf());
+
+	// Binding the buffer to the b0 slot for use.
+	Graphics::Context->VSSetConstantBuffers(
+		0,
+		1,
+		m_pConstantBuffer.GetAddressOf());
+
 	// Initialize ImGui itself & platform/renderer backends
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -303,6 +327,33 @@ void Game::Draw(float deltaTime, float totalTime)
 		Graphics::Context->ClearRenderTargetView(Graphics::BackBufferRTV.Get(),	m_fBackgroundColor);
 		Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
+
+	// Sending data to GPU with the constant buffer.
+	// 1. Collect data (Creating a data transfer object)
+	static float f = 0.0f;
+	f += 0.00001f;
+	VertexShaderExternalData DTO{};
+	DTO.color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	DTO.offset = XMFLOAT3(f, 0.0f, 0.0f);
+
+	// 2. Copy to GPU with memcpy
+	// Creating a mapped subresource struct to hold the cbuffer GPU address
+	D3D11_MAPPED_SUBRESOURCE mapped{};
+
+	// Actually grabbing the cbuffer's address
+	Graphics::Context->Map(
+		m_pConstantBuffer.Get(),
+		0,
+		D3D11_MAP_WRITE_DISCARD,
+		0,
+		&mapped
+	);
+
+	// Copying the data to the GPU
+	memcpy(mapped.pData, &DTO, sizeof(VertexShaderExternalData));
+
+	// Unmapping from the memory address.
+	Graphics::Context->Unmap(m_pConstantBuffer.Get(), 0);
 
 	//---------------------------------------------------------------
 	// DRAW HERE:
