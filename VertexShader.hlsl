@@ -35,6 +35,9 @@ struct VertexToPixel
 //	- Variables declared here are globally accessible in the Shader.
 cbuffer ExternalData : register(b0)
 {
+	// RECALL THAT DATA IN THIS COMES IN MULTIPLES OF 16 !!!!
+	//  Don't allow variables to hit the border that causes the GPU
+	//  to create extra padding... or everything will suck.
     float4 colorTint;
     float3 offset;
 }
