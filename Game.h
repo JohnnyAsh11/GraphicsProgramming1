@@ -5,20 +5,16 @@
 #include "Mesh.h"
 #include <DirectXMath.h>
 
-using namespace DirectX;
-
-// FOR IN CLASS DEMO
-struct VertexShaderExternalData
-{
-	XMFLOAT4 color;
-	XMFLOAT3 offset;
-};
+#include "BufferStructs.h"
 
 class Game
 {
 private:
 	float m_fBackgroundColor[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
 	bool m_bDemoVisibility;
+
+	XMFLOAT3 m_v3MeshPosition;
+	XMFLOAT4 m_v4MeshColor;
 
 public:
 	// Basic OOP setup

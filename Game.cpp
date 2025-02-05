@@ -83,8 +83,8 @@ void Game::Initialize()
 	for (int i = 0; i < dSubsivisions; i++)
 	{
 		vertexPositions.push_back(XMFLOAT3(
-			cos(fDeltaAngle * i) * fRadius + fOrigin.x,
-			sin(fDeltaAngle * i) * fRadius + fOrigin.y,
+			static_cast<float>(cos(fDeltaAngle * i) * fRadius + fOrigin.x),
+			static_cast<float>(sin(fDeltaAngle * i) * fRadius + fOrigin.y),
 			0.0f));
 	}
 
@@ -104,7 +104,7 @@ void Game::Initialize()
 	delete[] indices;
 #pragma endregion
 	
-	unsigned int cBufferSize = sizeof(VertexShaderExternalData);
+	unsigned int cBufferSize = sizeof(VertexColorOffsetData);
 	// Calculating the memory size in multiples of 16 by taking
 	//  advantage of int division.
 	cBufferSize = ((cBufferSize + 15) / 16) * 16;
@@ -125,6 +125,9 @@ void Game::Initialize()
 		0,
 		1,
 		m_pConstantBuffer.GetAddressOf());
+
+	// Setting the starting tint values.
+	m_v4MeshColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// Initialize ImGui itself & platform/renderer backends
 	IMGUI_CHECKVERSION();
@@ -309,9 +312,12 @@ void Game::UpdateImGui(float deltaTime)
 		m_bDemoVisibility = !m_bDemoVisibility;
 	}
 
+	// Creating UI draggers for the color and position of the meshes.
+	ImGui::DragFloat3("Mesh positions", &m_v3MeshPosition.x, 0.05f);
+	ImGui::ColorEdit4("Mesh color tints", &m_v4MeshColor.x);
+
 	// Closing the sub window.
 	ImGui::End();
-
 }
 
 // --------------------------------------------------------
@@ -330,11 +336,9 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	// Sending data to GPU with the constant buffer.
 	// 1. Collect data (Creating a data transfer object)
-	static float f = 0.0f;
-	f += 0.00001f;
-	VertexShaderExternalData DTO{};
-	DTO.color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	DTO.offset = XMFLOAT3(f, 0.0f, 0.0f);
+	VertexColorOffsetData DTO{};
+	DTO.m_v4Color = m_v4MeshColor;
+	DTO.m_v3Offset = m_v3MeshPosition;
 
 	// 2. Copy to GPU with memcpy
 	// Creating a mapped subresource struct to hold the cbuffer GPU address
@@ -350,7 +354,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	);
 
 	// Copying the data to the GPU
-	memcpy(mapped.pData, &DTO, sizeof(VertexShaderExternalData));
+	memcpy(mapped.pData, &DTO, sizeof(VertexColorOffsetData));
 
 	// Unmapping from the memory address.
 	Graphics::Context->Unmap(m_pConstantBuffer.Get(), 0);
