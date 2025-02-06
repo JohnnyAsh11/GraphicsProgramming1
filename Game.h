@@ -6,12 +6,15 @@
 #include <DirectXMath.h>
 
 #include "BufferStructs.h"
+#include "Transform.h"
 
 class Game
 {
 private:
 	float m_fBackgroundColor[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
 	bool m_bDemoVisibility;
+
+	Transform m_tTransform;
 
 	XMFLOAT3 m_v3MeshPosition;
 	XMFLOAT4 m_v4MeshColor;

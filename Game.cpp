@@ -120,6 +120,8 @@ void Game::Initialize()
 	// Creating the buffer with the description struct.
 	Graphics::Device->CreateBuffer(&cbDesc, 0, m_pConstantBuffer.GetAddressOf());
 
+	m_tTransform = Transform();
+
 	// Binding the buffer to the b0 slot for use.
 	Graphics::Context->VSSetConstantBuffers(
 		0,
@@ -266,6 +268,12 @@ void Game::OnResize()
 void Game::Update(float deltaTime, float totalTime)
 {
 	UpdateImGui(deltaTime);
+
+	m_tTransform.SetPosition(sin(totalTime), 0.0f, 0.0f);
+	m_v3MeshPosition = m_tTransform.GetPosition();
+	m_v4MeshColor.x = sin(totalTime) * 0.5f + 0.5f;
+	m_v4MeshColor.y = sin(totalTime) * 0.5f + 0.5f;
+	m_v4MeshColor.z = sin(totalTime) * 0.5f + 0.5f;
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE))
