@@ -22,6 +22,11 @@ void Transform::SetPosition(float a_fX, float a_fY, float a_fZ)
 
 void Transform::SetPosition(DirectX::XMFLOAT3 a_v3Position)
 {
+    m_v3Position.x = a_v3Position.x;
+    m_v3Position.y = a_v3Position.y;
+    m_v3Position.z = a_v3Position.z;
+
+    m_bIsDirty = true;
 }
 
 void Transform::SetRotation(float a_fX, float a_fY, float a_fZ)
@@ -35,6 +40,11 @@ void Transform::SetRotation(float a_fX, float a_fY, float a_fZ)
 
 void Transform::SetRotation(DirectX::XMFLOAT3 a_v3Rotation)
 {
+    m_v3Rotation.x = a_v3Rotation.x;
+    m_v3Rotation.y = a_v3Rotation.y;
+    m_v3Rotation.z = a_v3Rotation.z;
+
+    m_bIsDirty = true;
 }
 
 void Transform::SetScale(float a_fX, float a_fY, float a_fZ)
@@ -48,6 +58,11 @@ void Transform::SetScale(float a_fX, float a_fY, float a_fZ)
 
 void Transform::SetScale(DirectX::XMFLOAT3 a_v3Scale)
 {
+    m_v3Scale.x = a_v3Scale.x;
+    m_v3Scale.y = a_v3Scale.y;
+    m_v3Scale.z = a_v3Scale.z;
+
+    m_bIsDirty = true;
 }
 
 void Transform::MoveAbsolute(float a_fX, float a_fY, float a_fZ)
