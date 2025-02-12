@@ -104,7 +104,7 @@ void Game::Initialize()
 	delete[] indices;
 #pragma endregion
 	
-	unsigned int cBufferSize = sizeof(VertexColorOffsetData);
+	unsigned int cBufferSize = sizeof(VertexColorWorldData);
 	// Calculating the memory size in multiples of 16 by taking
 	//  advantage of int division.
 	cBufferSize = ((cBufferSize + 15) / 16) * 16;
@@ -344,9 +344,9 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	// Sending data to GPU with the constant buffer.
 	// 1. Collect data (Creating a data transfer object)
-	VertexColorOffsetData DTO{};
+	VertexColorWorldData DTO{};
 	DTO.m_v4Color = m_v4MeshColor;
-	DTO.m_v3Offset = m_v3MeshPosition;
+	DTO.m_m4WorldMatrix = ;
 
 	// 2. Copy to GPU with memcpy
 	// Creating a mapped subresource struct to hold the cbuffer GPU address
@@ -362,7 +362,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	);
 
 	// Copying the data to the GPU
-	memcpy(mapped.pData, &DTO, sizeof(VertexColorOffsetData));
+	memcpy(mapped.pData, &DTO, sizeof(VertexColorWorldData));
 
 	// Unmapping from the memory address.
 	Graphics::Context->Unmap(m_pConstantBuffer.Get(), 0);
