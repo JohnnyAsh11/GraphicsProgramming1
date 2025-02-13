@@ -116,8 +116,10 @@ void Game::Initialize()
 	{
 		m_lEntities.push_back(GameEntity(mesh1));
 	}
-
 	m_lEntities.push_back(GameEntity(mesh2));
+
+	delete mesh1;
+	delete mesh2;
 
 	// Initialize ImGui itself & platform/renderer backends
 	IMGUI_CHECKVERSION();
@@ -254,19 +256,15 @@ void Game::Update(float deltaTime, float totalTime)
 {
 	UpdateImGui(deltaTime);
 
-	for (unsigned int i = 0; i < m_lEntities.size(); i++)
-	{
-		Transform& current = m_lEntities[i].GetTransform();
-
-		current.SetPosition(static_cast<float>(sin(totalTime)) * i, 0.0f, 0.0f);
-		current.Rotate(0.0f, 0.0f, 0.0001f);
-	}
-
-	//m_tTransform.SetPosition(sin(totalTime), 0.0f, 0.0f);
-	//m_v3MeshPosition = m_tTransform.GetPosition();
-	//m_v4MeshColor.x = sin(totalTime) * 0.5f + 0.5f;
-	//m_v4MeshColor.y = sin(totalTime) * 0.5f + 0.5f;
-	//m_v4MeshColor.z = sin(totalTime) * 0.5f + 0.5f;
+	Transform& current = m_lEntities[0].GetTransform();
+	current.SetPosition(static_cast<float>(sin(totalTime)), 0.0f, 0.0f);
+	//for (unsigned int i = 0; i < m_lEntities.size(); i++)
+	//{
+	//	Transform& current = m_lEntities[i].GetTransform();
+	//
+	//	current.SetPosition(static_cast<float>(sin(totalTime)) * i, 0.0f, 0.0f);
+	//	current.Rotate(0.0f, 0.0f, 0.0001f);
+	//}
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE))
@@ -313,20 +311,40 @@ void Game::UpdateImGui(float deltaTime)
 		m_bDemoVisibility = !m_bDemoVisibility;
 	}
 
+	// Creating a sub section for the entities.
 	if (ImGui::TreeNode("Entities"))
 	{
+		// Looping through the entities in the list.s
 		for (unsigned int i = 0; i < m_lEntities.size(); i++)
 		{
-			if (ImGui::TreeNode("Entity##" + i))
+			// Interface naming.
+			std::string sInterface = "Entity " + std::to_string(i);
+			sInterface += "##";
+			sInterface += std::to_string(i);
+
+			// Creating the nodes for the individual entities.
+			if (ImGui::TreeNode(sInterface.c_str()))
 			{
+				// Getting the current entity's transform.
 				Transform& current = m_lEntities[i].GetTransform();
 
-				//ImGui::DragFloat3("Position##" + i, current.GetPosition().x);
+				// Creating the drag floats.
+				ImGui::DragFloat3(
+					("Position##" + std::to_string(i)).c_str(), 
+					&current.GetPosition().x,
+					0.05f);
+				ImGui::DragFloat3(
+					("Rotation##" + std::to_string(i)).c_str(),
+					&current.GetRotation().x,
+					0.05f);
+				ImGui::DragFloat3(
+					("Scale##" + std::to_string(i)).c_str(),
+					&current.GetScale().x,
+					0.05f);
 
 				ImGui::TreePop();
 			}
 		}
-
 		ImGui::TreePop();
 	}
 

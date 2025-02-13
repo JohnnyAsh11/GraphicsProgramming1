@@ -124,16 +124,22 @@ void Transform::Scale(DirectX::XMFLOAT3 a_v3Scale)
     m_bIsDirty = true;
 }
 
-DirectX::XMFLOAT3 Transform::GetPosition()
+DirectX::XMFLOAT3& Transform::GetPosition()
 {
+    // Assume that when returning the position that the data will be altered.
+    m_bIsDirty = true;
     return m_v3Position;
 }
-DirectX::XMFLOAT3 Transform::GetRotation()
+DirectX::XMFLOAT3& Transform::GetRotation()
 {
+    // Assume that when returning the position that the data will be altered.
+    m_bIsDirty = true;
     return m_v3Rotation;
 }
-DirectX::XMFLOAT3 Transform::GetScale()
+DirectX::XMFLOAT3& Transform::GetScale()
 {
+    // Assume that when returning the position that the data will be altered.
+    m_bIsDirty = true;
     return m_v3Scale;
 }
 

@@ -42,9 +42,9 @@ public:
 	void Scale(float a_fX, float a_fY, float a_fZ);
 	void Scale(DirectX::XMFLOAT3 a_v3Scale);
 
-	DirectX::XMFLOAT3 GetPosition();
-	DirectX::XMFLOAT3 GetRotation();
-	DirectX::XMFLOAT3 GetScale();
+	DirectX::XMFLOAT3& GetPosition();
+	DirectX::XMFLOAT3& GetRotation();
+	DirectX::XMFLOAT3& GetScale();
 
 	DirectX::XMFLOAT4X4 GetWorldMatrix();
 	DirectX::XMFLOAT4X4 GetWorldInverseTransposeMatrix();

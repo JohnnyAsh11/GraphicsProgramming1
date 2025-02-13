@@ -4,7 +4,7 @@
 
 GameEntity::GameEntity(Mesh* a_pMesh)
 {
-	m_pMesh = std::shared_ptr<Mesh>(a_pMesh);
+	m_pMesh = std::make_shared<Mesh>(*a_pMesh);
 	m_tTransform = Transform();
 }
 
