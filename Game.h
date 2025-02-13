@@ -2,11 +2,11 @@
 
 #include <d3d11.h>
 #include <wrl/client.h>
-#include "Mesh.h"
 #include <DirectXMath.h>
+#include <vector>
 
+#include "GameEntity.h"
 #include "BufferStructs.h"
-#include "Transform.h"
 
 class Game
 {
@@ -14,10 +14,7 @@ private:
 	float m_fBackgroundColor[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
 	bool m_bDemoVisibility;
 
-	Transform m_tTransform;
-
-	XMFLOAT3 m_v3MeshPosition;
-	XMFLOAT4 m_v4MeshColor;
+	std::vector<GameEntity> m_lEntities;
 
 public:
 	// Basic OOP setup

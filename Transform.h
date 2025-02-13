@@ -3,6 +3,9 @@
 
 #include <DirectXMath.h>
 
+/// <summary>
+/// Controls the world matrix of objects in the world.
+/// </summary>
 class Transform
 {
 private:

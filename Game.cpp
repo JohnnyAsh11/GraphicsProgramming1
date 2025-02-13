@@ -30,46 +30,10 @@ void Game::Initialize()
 	//  - You'll be expanding and/or replacing these later
 	LoadShaders();
 
-#pragma region Meshes
-	// Setting the Vertices of the first triangle.
-	Vertex* vertices = new Vertex[3];
-	vertices[0] = { XMFLOAT3(+0.0f, +0.25f, +0.0f), RED };
-	vertices[1] = { XMFLOAT3(+0.25f, -0.25f, +0.0f), GREEN };
-	vertices[2] = { XMFLOAT3(-0.25f, -0.25f, +0.0f), BLUE };
-	
-	// Setting the indices of the first triangle.
-	unsigned int* indices = new unsigned int[3];
-	for (int i = 0; i < 3; i++) indices[i] = i;
-	
-	// Instantiating the first mesh.
-	m_mMesh1 = new Mesh(vertices, 3, indices, 3);
-	
-	delete[] indices;
-	delete[] vertices;	
-
-	// Setting the indices for the square.
-	indices = new unsigned int[6];
-	for (int i = 0; i < 6; i++) indices[i] = i;
-
-	// Setting the vertices for the square.
-	vertices = new Vertex[6];
-	vertices[0] = { XMFLOAT3(+0.9f, +0.25f, +0.0f), PURPLE };		// Center
-	vertices[1] = { XMFLOAT3(+0.9f, -0.5f, +0.0f), ORANGE };		// Bottom Right
-	vertices[2] = { XMFLOAT3(+0.5f, -0.5f, +0.0f), ORANGE };		// Bottom Left
-
-	vertices[3] = { XMFLOAT3(+0.5f, -0.5f, +0.0f), ORANGE };		// Center
-	vertices[5] = { XMFLOAT3(+0.9f, +0.25f, +0.0f), PURPLE };		// Top Right
-	vertices[4] = { XMFLOAT3(+0.5f, +0.25f, +0.0f), PURPLE };		// Top Left
-	
-	// Instantiating the square mesh.
-	m_mMesh2 = new Mesh(vertices, 6, indices, 6);
-	
-	delete[] vertices;
-	delete[] indices;
-
+#pragma region Mesh Creation
 	// Allocating the memory for both buffers.  Also setting the index values.
-	vertices = new Vertex[36];
-	indices = new unsigned int[36];
+	Vertex* vertices = new Vertex[36];
+	unsigned int* indices = new unsigned int[36];
 	for (int i = 0; i < 36; i++) indices[i] = i;
 
 	// Setting some variables for creating the circle.
@@ -98,12 +62,33 @@ void Game::Initialize()
 	}
 
 	// Instantiating the mesh object.
-	m_mMesh3 = new Mesh(vertices, 36, indices, 36);
+	Mesh* mesh1 = new Mesh(vertices, 36, indices, 36);
+
+	delete[] vertices;
+	delete[] indices;
+
+	// Setting the indices for the square.
+	indices = new unsigned int[6];
+	for (int i = 0; i < 6; i++) indices[i] = i;
+
+	// Setting the vertices for the square.
+	vertices = new Vertex[6];
+	vertices[0] = { XMFLOAT3(+0.9f, +0.25f, +0.0f), PURPLE };		// Center
+	vertices[1] = { XMFLOAT3(+0.9f, -0.5f, +0.0f), ORANGE };		// Bottom Right
+	vertices[2] = { XMFLOAT3(+0.5f, -0.5f, +0.0f), ORANGE };		// Bottom Left
+
+	vertices[3] = { XMFLOAT3(+0.5f, -0.5f, +0.0f), ORANGE };		// Center
+	vertices[5] = { XMFLOAT3(+0.9f, +0.25f, +0.0f), PURPLE };		// Top Right
+	vertices[4] = { XMFLOAT3(+0.5f, +0.25f, +0.0f), PURPLE };		// Top Left
+
+	// Instantiating the square mesh.
+	Mesh* mesh2 = new Mesh(vertices, 6, indices, 6);
 
 	delete[] vertices;
 	delete[] indices;
 #pragma endregion
 	
+#pragma region Creating cBuffer
 	unsigned int cBufferSize = sizeof(VertexColorWorldData);
 	// Calculating the memory size in multiples of 16 by taking
 	//  advantage of int division.
@@ -120,16 +105,19 @@ void Game::Initialize()
 	// Creating the buffer with the description struct.
 	Graphics::Device->CreateBuffer(&cbDesc, 0, m_pConstantBuffer.GetAddressOf());
 
-	m_tTransform = Transform();
-
 	// Binding the buffer to the b0 slot for use.
 	Graphics::Context->VSSetConstantBuffers(
 		0,
 		1,
 		m_pConstantBuffer.GetAddressOf());
+#pragma endregion
 
-	// Setting the starting tint values.
-	m_v4MeshColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	for (unsigned int i = 0; i < 4; i++)
+	{
+		m_lEntities.push_back(GameEntity(mesh1));
+	}
+
+	m_lEntities.push_back(GameEntity(mesh2));
 
 	// Initialize ImGui itself & platform/renderer backends
 	IMGUI_CHECKVERSION();
@@ -171,9 +159,6 @@ void Game::Initialize()
 // --------------------------------------------------------
 Game::~Game()
 {
-	delete m_mMesh1;
-	delete m_mMesh2;
-	delete m_mMesh3;
 
 	// ImGui clean up
 	ImGui_ImplDX11_Shutdown();
@@ -269,11 +254,19 @@ void Game::Update(float deltaTime, float totalTime)
 {
 	UpdateImGui(deltaTime);
 
-	m_tTransform.SetPosition(sin(totalTime), 0.0f, 0.0f);
-	m_v3MeshPosition = m_tTransform.GetPosition();
-	m_v4MeshColor.x = sin(totalTime) * 0.5f + 0.5f;
-	m_v4MeshColor.y = sin(totalTime) * 0.5f + 0.5f;
-	m_v4MeshColor.z = sin(totalTime) * 0.5f + 0.5f;
+	for (unsigned int i = 0; i < m_lEntities.size(); i++)
+	{
+		Transform& current = m_lEntities[i].GetTransform();
+
+		current.SetPosition(static_cast<float>(sin(totalTime)) * i, 0.0f, 0.0f);
+		current.Rotate(0.0f, 0.0f, 0.0001f);
+	}
+
+	//m_tTransform.SetPosition(sin(totalTime), 0.0f, 0.0f);
+	//m_v3MeshPosition = m_tTransform.GetPosition();
+	//m_v4MeshColor.x = sin(totalTime) * 0.5f + 0.5f;
+	//m_v4MeshColor.y = sin(totalTime) * 0.5f + 0.5f;
+	//m_v4MeshColor.z = sin(totalTime) * 0.5f + 0.5f;
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE))
@@ -320,9 +313,22 @@ void Game::UpdateImGui(float deltaTime)
 		m_bDemoVisibility = !m_bDemoVisibility;
 	}
 
-	// Creating UI draggers for the color and position of the meshes.
-	ImGui::DragFloat3("Mesh positions", &m_v3MeshPosition.x, 0.05f);
-	ImGui::ColorEdit4("Mesh color tints", &m_v4MeshColor.x);
+	if (ImGui::TreeNode("Entities"))
+	{
+		for (unsigned int i = 0; i < m_lEntities.size(); i++)
+		{
+			if (ImGui::TreeNode("Entity##" + i))
+			{
+				Transform& current = m_lEntities[i].GetTransform();
+
+				//ImGui::DragFloat3("Position##" + i, current.GetPosition().x);
+
+				ImGui::TreePop();
+			}
+		}
+
+		ImGui::TreePop();
+	}
 
 	// Closing the sub window.
 	ImGui::End();
@@ -342,37 +348,10 @@ void Game::Draw(float deltaTime, float totalTime)
 		Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
-	// Sending data to GPU with the constant buffer.
-	// 1. Collect data (Creating a data transfer object)
-	VertexColorWorldData DTO{};
-	DTO.m_v4Color = m_v4MeshColor;
-	DTO.m_m4WorldMatrix = ;
-
-	// 2. Copy to GPU with memcpy
-	// Creating a mapped subresource struct to hold the cbuffer GPU address
-	D3D11_MAPPED_SUBRESOURCE mapped{};
-
-	// Actually grabbing the cbuffer's address
-	Graphics::Context->Map(
-		m_pConstantBuffer.Get(),
-		0,
-		D3D11_MAP_WRITE_DISCARD,
-		0,
-		&mapped
-	);
-
-	// Copying the data to the GPU
-	memcpy(mapped.pData, &DTO, sizeof(VertexColorWorldData));
-
-	// Unmapping from the memory address.
-	Graphics::Context->Unmap(m_pConstantBuffer.Get(), 0);
-
-	//---------------------------------------------------------------
-	// DRAW HERE:
-	
-	m_mMesh1->Draw();
-	m_mMesh2->Draw();
-	m_mMesh3->Draw();	
+	for (unsigned int i = 0; i < m_lEntities.size(); i++)
+	{
+		m_lEntities[i].Draw(m_pConstantBuffer);
+	}
 
 	// Rendering ImGui
 	ImGui::Render(); // Turns this frame’s UI into renderable triangles

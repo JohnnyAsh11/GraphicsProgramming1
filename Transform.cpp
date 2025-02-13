@@ -30,9 +30,9 @@ void Transform::SetPosition(DirectX::XMFLOAT3 a_v3Position)
 }
 void Transform::SetRotation(float a_fP, float a_fY, float a_fR)
 {
-    m_v3Rotation.x = a_fX;
+    m_v3Rotation.x = a_fP;
     m_v3Rotation.y = a_fY;
-    m_v3Rotation.z = a_fZ;
+    m_v3Rotation.z = a_fR;
 
     m_bIsDirty = true;
 }
