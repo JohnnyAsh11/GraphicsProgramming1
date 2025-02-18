@@ -121,6 +121,7 @@ void Game::Initialize()
 	delete mesh1;
 	delete mesh2;
 
+	
 	// Initialize ImGui itself & platform/renderer backends
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();

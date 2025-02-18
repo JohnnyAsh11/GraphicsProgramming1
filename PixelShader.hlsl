@@ -25,10 +25,10 @@ struct VertexToPixel
 // - Named "main" because that's the default the shader compiler looks for
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
-{
+{	
 	// Just return the input color
 	// - This color (like most values passing through the rasterizer) is 
 	//   interpolated for each pixel between the corresponding vertices 
 	//   of the triangle we're rendering
-	return input.color;
+    return input.color;
 }
