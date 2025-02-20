@@ -5,14 +5,14 @@
 #include "Mesh.h"
 #include "Camera.h"
 
-class GameEntity 
+class Entity 
 {
 private:
 	std::shared_ptr<Mesh> m_pMesh;
 	Transform m_tTransform;
 
 public:
-	GameEntity(Mesh* a_pMesh);
+	Entity(Mesh* a_pMesh);
 
 	Transform& GetTransform();
 	std::shared_ptr<Mesh> GetMesh();

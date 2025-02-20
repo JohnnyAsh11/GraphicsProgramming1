@@ -120,9 +120,9 @@ void Game::Initialize()
 
 	for (unsigned int i = 0; i < 4; i++)
 	{
-		m_lEntities.push_back(GameEntity(mesh1));
+		m_lEntities.push_back(Entity(mesh1));
 	}
-	m_lEntities.push_back(GameEntity(mesh2));
+	m_lEntities.push_back(Entity(mesh2));
 
 	delete mesh1;
 	delete mesh2;
@@ -186,6 +186,9 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::LoadShaders()
 {
+	//m_pVertexShader = std::make_shared<SimpleVertexShader>(Graphics::Device, Graphics::Context);
+	//m_pPixelShader = std::make_shared<SimplePixelShader>(Graphics::Device, Graphics::Context);
+
 	// BLOBs (or Binary Large OBjects) for reading raw data from external files
 	// - This is a simplified way of handling big chunks of external data
 	// - Literally just a big array of bytes read from a file
@@ -275,13 +278,6 @@ void Game::Update(float deltaTime, float totalTime)
 
 	Transform& current = m_lEntities[0].GetTransform();
 	current.SetPosition(static_cast<float>(sin(totalTime)), 0.0f, 0.0f);
-	//for (unsigned int i = 0; i < m_lEntities.size(); i++)
-	//{
-	//	Transform& current = m_lEntities[i].GetTransform();
-	//
-	//	current.SetPosition(static_cast<float>(sin(totalTime)) * i, 0.0f, 0.0f);
-	//	current.Rotate(0.0f, 0.0f, 0.0001f);
-	//}
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE))
@@ -404,6 +400,17 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	for (unsigned int i = 0; i < m_lEntities.size(); i++)
 	{
+		/*
+		m_pVertexShader->SetShader();
+		m_pPixelShader->SetShader();
+
+		m_pVertexShader->SetMatrix4x4("world", m_lEntities[i].GetTransform().GetWorldMatrix());
+		m_pVertexShader->SetMatrix4x4("view", m_pActiveCamera->GetView());
+		m_pVertexShader->SetMatrix4x4("projection", m_pActiveCamera->GetProjection());
+
+		m_pVertexShader->CopyAllBufferData();
+		*/
+
 		m_lEntities[i].Draw(m_pConstantBuffer, m_pActiveCamera);
 	}
 

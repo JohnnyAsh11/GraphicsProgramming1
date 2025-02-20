@@ -1,17 +1,17 @@
-#include "GameEntity.h"
+#include "Entity.h"
 #include "BufferStructs.h"
 #include "Graphics.h"
 
-GameEntity::GameEntity(Mesh* a_pMesh)
+Entity::Entity(Mesh* a_pMesh)
 {
 	m_pMesh = std::make_shared<Mesh>(*a_pMesh);
 	m_tTransform = Transform();
 }
 
-Transform& GameEntity::GetTransform() { return m_tTransform; }
-std::shared_ptr<Mesh> GameEntity::GetMesh() { return std::shared_ptr<Mesh>(); }
+Transform& Entity::GetTransform() { return m_tTransform; }
+std::shared_ptr<Mesh> Entity::GetMesh() { return std::shared_ptr<Mesh>(); }
 
-void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> a_pConstantBuffer, std::shared_ptr<Camera> a_pCamera)
+void Entity::Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> a_pConstantBuffer, std::shared_ptr<Camera> a_pCamera)
 {
 	// Sending data to GPU with the constant buffer.
 	// 1. Collect data (Creating a data transfer object)

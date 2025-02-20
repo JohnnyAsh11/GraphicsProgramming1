@@ -5,9 +5,10 @@
 #include <DirectXMath.h>
 #include <vector>
 
-#include "GameEntity.h"
+#include "Entity.h"
 #include "BufferStructs.h"
 #include "Camera.h"
+#include "SimpleShader.h"
 
 class Game
 {
@@ -18,7 +19,7 @@ private:
 	std::vector<std::shared_ptr<Camera>> m_lCameras;
 	std::shared_ptr<Camera> m_pActiveCamera = nullptr;
 
-	std::vector<GameEntity> m_lEntities;
+	std::vector<Entity> m_lEntities;
 
 public:
 	// Basic OOP setup
@@ -50,6 +51,9 @@ private:
 	Mesh* m_mMesh3 = nullptr;
 
 	// Shaders and shader-related constructs
+	std::shared_ptr<SimpleVertexShader> m_pVertexShader;
+	std::shared_ptr<SimplePixelShader> m_pPixelShader;
+
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;

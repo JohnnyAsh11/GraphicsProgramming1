@@ -39,8 +39,7 @@ cbuffer ExternalData : register(b0)
 	//  Don't allow variables to hit the border that causes the GPU
 	//  to create extra padding... or everything will suck.
     float4 colorTint;
-    matrix world;
-	
+    matrix world;	
 	matrix view;
 	matrix projection;
 }
