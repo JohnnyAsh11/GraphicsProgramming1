@@ -9,4 +9,6 @@ struct VertexColorWorldData
 {
 	XMFLOAT4 m_v4Color;
 	XMFLOAT4X4 m_m4WorldMatrix;
+	XMFLOAT4X4 m_m4ViewMatrix;
+	XMFLOAT4X4 m_m4ProjectionMatrix;
 };

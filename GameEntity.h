@@ -3,7 +3,7 @@
 
 #include <memory>
 #include "Mesh.h"
-#include "Transform.h"
+#include "Camera.h"
 
 class GameEntity 
 {
@@ -17,7 +17,7 @@ public:
 	Transform& GetTransform();
 	std::shared_ptr<Mesh> GetMesh();
 
-	void Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> a_pConstantBuffer);
+	void Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> a_pConstantBuffer, std::shared_ptr<Camera> a_pCamera);
 };
 
 #endif //__GAMEENTITY_H_

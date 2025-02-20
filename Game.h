@@ -7,12 +7,16 @@
 
 #include "GameEntity.h"
 #include "BufferStructs.h"
+#include "Camera.h"
 
 class Game
 {
 private:
 	float m_fBackgroundColor[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
 	bool m_bDemoVisibility;
+
+	std::vector<std::shared_ptr<Camera>> m_lCameras;
+	std::shared_ptr<Camera> m_pActiveCamera = nullptr;
 
 	std::vector<GameEntity> m_lEntities;
 

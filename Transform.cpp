@@ -83,9 +83,40 @@ void Transform::MoveAbsolute(DirectX::XMFLOAT3 a_v3Offset)
 }
 void Transform::MoveRelative(float a_fX, float a_fY, float a_fZ)
 {
+    // Creating the offset and quaternion vectors.
+    XMFLOAT3 v3 = XMFLOAT3(a_fX, a_fY, a_fZ);
+    XMVECTOR vOffset = XMLoadFloat3(&v3);
+    XMVECTOR vQuat = XMQuaternionRotationRollPitchYaw(
+        m_v3Rotation.x,     // Roll
+        m_v3Rotation.y,     // Pitch
+        m_v3Rotation.z);    // Yaw
+
+    // Getting the resulting vector that we will actually move by.
+    XMVECTOR vResult = XMVector3Rotate(vOffset, vQuat);
+
+    // Adding that to the position and saving the result as the new position.
+    XMStoreFloat3(
+        &m_v3Position,
+        XMLoadFloat3(&m_v3Position) + vResult
+    );
 }
 void Transform::MoveRelative(DirectX::XMFLOAT3 a_v3Offset)
 {
+    // Creating the offset and quaternion vectors.
+    XMVECTOR vOffset = XMLoadFloat3(&a_v3Offset);
+    XMVECTOR vQuat = XMQuaternionRotationRollPitchYaw(
+        m_v3Rotation.x,     // Roll
+        m_v3Rotation.y,     // Pitch
+        m_v3Rotation.z);    // Yaw
+
+    // Getting the resulting vector that we will actually move by.
+    XMVECTOR vResult = XMVector3Rotate(vOffset, vQuat);
+
+    // Adding that to the position and saving the result as the new position.
+    XMStoreFloat3(
+        &m_v3Position,
+        XMLoadFloat3(&m_v3Position) + vResult
+    );
 }
 void Transform::Rotate(float a_fP, float a_fY, float a_fR)
 {
@@ -141,6 +172,64 @@ DirectX::XMFLOAT3& Transform::GetScale()
     // Assume that when returning the position that the data will be altered.
     m_bIsDirty = true;
     return m_v3Scale;
+}
+
+DirectX::XMFLOAT3 Transform::GetUp()
+{
+    // Temporarily use this result vector for the direction
+    XMFLOAT3 v3Result = XMFLOAT3(0.0f, 1.0f, 0.0f);
+
+    // Creating the offset and quaternion vectors.
+    XMVECTOR vWorldUp = XMLoadFloat3(&v3Result);
+    XMVECTOR vOrientation = XMQuaternionRotationRollPitchYaw(
+        m_v3Rotation.x,     // Roll
+        m_v3Rotation.y,     // Pitch
+        m_v3Rotation.z);    // Yaw
+
+    XMStoreFloat3(
+        &v3Result,
+        XMVector3Rotate(vWorldUp, vOrientation)
+    );
+
+    return v3Result;
+}
+DirectX::XMFLOAT3 Transform::GetRight()
+{
+    // Temporarily use this result vector for the direction
+    XMFLOAT3 v3Result = XMFLOAT3(1.0f, 0.0f, 0.0f);
+
+    // Creating the offset and quaternion vectors.
+    XMVECTOR vWorldUp = XMLoadFloat3(&v3Result);
+    XMVECTOR vOrientation = XMQuaternionRotationRollPitchYaw(
+        m_v3Rotation.x,     // Roll
+        m_v3Rotation.y,     // Pitch
+        m_v3Rotation.z);    // Yaw
+
+    XMStoreFloat3(
+        &v3Result,
+        XMVector3Rotate(vWorldUp, vOrientation)
+    );
+
+    return v3Result;
+}
+DirectX::XMFLOAT3 Transform::GetForward()
+{
+    // Temporarily use this result vector for the direction
+    XMFLOAT3 v3Result = XMFLOAT3(0.0f, 0.0f, 1.0f);
+
+    // Creating the offset and quaternion vectors.
+    XMVECTOR vWorldUp = XMLoadFloat3(&v3Result);
+    XMVECTOR vOrientation = XMQuaternionRotationRollPitchYaw(
+        m_v3Rotation.x,     // Roll
+        m_v3Rotation.y,     // Pitch
+        m_v3Rotation.z);    // Yaw
+
+    XMStoreFloat3(
+        &v3Result,
+        XMVector3Rotate(vWorldUp, vOrientation)
+    );
+
+    return v3Result;
 }
 
 DirectX::XMFLOAT4X4 Transform::GetWorldMatrix()

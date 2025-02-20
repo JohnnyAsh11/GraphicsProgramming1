@@ -30,6 +30,12 @@ void Game::Initialize()
 	//  - You'll be expanding and/or replacing these later
 	LoadShaders();
 
+	// Initializing the Camera.
+	m_lCameras.push_back(std::shared_ptr<Camera>(new Camera(Window::AspectRatio(), XMFLOAT3(0.0f, 0.0f, -5.0f), 60.0f)));
+	m_lCameras.push_back(std::shared_ptr<Camera>(new Camera(Window::AspectRatio(), XMFLOAT3(2.5f, 0.0f, -5.0f), 45.0f)));
+	m_lCameras.push_back(std::shared_ptr<Camera>(new Camera(Window::AspectRatio(), XMFLOAT3(-2.5f, 0.0f, -5.0f), 75.0f)));
+	m_pActiveCamera = m_lCameras[0];
+
 #pragma region Mesh Creation
 	// Allocating the memory for both buffers.  Also setting the index values.
 	Vertex* vertices = new Vertex[36];
@@ -247,6 +253,15 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::OnResize()
 {
+	// So long as the camera list has content,
+	if (m_lCameras.size() != 0)
+	{
+		// Update the projection matrices.
+		for (unsigned int i = 0; i < m_lCameras.size(); i++)
+		{
+			m_lCameras[i]->UpdateProjection(Window::AspectRatio());
+		}
+	}
 }
 
 
@@ -256,6 +271,7 @@ void Game::OnResize()
 void Game::Update(float deltaTime, float totalTime)
 {
 	UpdateImGui(deltaTime);
+	m_pActiveCamera->Update(deltaTime);
 
 	Transform& current = m_lEntities[0].GetTransform();
 	current.SetPosition(static_cast<float>(sin(totalTime)), 0.0f, 0.0f);
@@ -348,6 +364,25 @@ void Game::UpdateImGui(float deltaTime)
 		}
 		ImGui::TreePop();
 	}
+	// Creating a sub section for the cameras.
+	if (ImGui::TreeNode("Cameras"))
+	{
+		// Looping through the entities in the list.s
+		for (unsigned int i = 0; i < m_lCameras.size(); i++)
+		{
+			// Interface naming.
+			std::string sInterface = "Camera " + std::to_string(i);
+			sInterface += "##";
+			sInterface += std::to_string(i);
+
+			// Creating the button to swap to other Cameras.
+			if (ImGui::Button(sInterface.c_str()))
+			{
+				m_pActiveCamera = m_lCameras[i];
+			}
+		}
+		ImGui::TreePop();
+	}
 
 	// Closing the sub window.
 	ImGui::End();
@@ -369,7 +404,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	for (unsigned int i = 0; i < m_lEntities.size(); i++)
 	{
-		m_lEntities[i].Draw(m_pConstantBuffer);
+		m_lEntities[i].Draw(m_pConstantBuffer, m_pActiveCamera);
 	}
 
 	// Rendering ImGui

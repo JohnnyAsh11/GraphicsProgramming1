@@ -11,13 +11,15 @@ GameEntity::GameEntity(Mesh* a_pMesh)
 Transform& GameEntity::GetTransform() { return m_tTransform; }
 std::shared_ptr<Mesh> GameEntity::GetMesh() { return std::shared_ptr<Mesh>(); }
 
-void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> a_pConstantBuffer)
+void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> a_pConstantBuffer, std::shared_ptr<Camera> a_pCamera)
 {
 	// Sending data to GPU with the constant buffer.
 	// 1. Collect data (Creating a data transfer object)
 	VertexColorWorldData DTO{};
 	DTO.m_v4Color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	DTO.m_m4WorldMatrix = m_tTransform.GetWorldMatrix();
+	DTO.m_m4ViewMatrix = a_pCamera->GetView();
+	DTO.m_m4ProjectionMatrix = a_pCamera->GetProjection();
 
 	// 2. Copy to GPU with memcpy
 	// Creating a mapped subresource struct to hold the cbuffer GPU address
