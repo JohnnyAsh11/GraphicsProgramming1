@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "Entity.h"
-#include "BufferStructs.h"
 #include "Camera.h"
 #include "SimpleShader.h"
 
@@ -37,7 +36,6 @@ public:
 private:
 
 	// Initialization helper methods - feel free to customize, combine, remove, etc.
-	void LoadShaders();
 	void UpdateImGui(float deltaTime);
 
 	// Note the usage of ComPtr below
@@ -49,15 +47,5 @@ private:
 	Mesh* m_mMesh1 = nullptr;
 	Mesh* m_mMesh2 = nullptr;
 	Mesh* m_mMesh3 = nullptr;
-
-	// Shaders and shader-related constructs
-	std::shared_ptr<SimpleVertexShader> m_pVertexShader;
-	std::shared_ptr<SimplePixelShader> m_pPixelShader;
-
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
-	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
-	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
-	
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_pConstantBuffer;
 };
 

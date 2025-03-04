@@ -3,21 +3,26 @@
 
 #include <memory>
 #include "Mesh.h"
+#include "Material.h"
 #include "Camera.h"
 
 class Entity 
 {
 private:
 	std::shared_ptr<Mesh> m_pMesh;
+	std::shared_ptr<Material> m_pMaterial;
 	Transform m_tTransform;
 
 public:
-	Entity(Mesh* a_pMesh);
+	Entity(Mesh* a_pMesh, Material* a_pMaterial);
 
 	Transform& GetTransform();
 	std::shared_ptr<Mesh> GetMesh();
+	std::shared_ptr<Material> GetMaterial();
 
-	void Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> a_pConstantBuffer, std::shared_ptr<Camera> a_pCamera);
+	void SetMaterial(std::shared_ptr<Material> a_pMaterial);
+
+	void Draw(std::shared_ptr<Camera> a_pCamera);
 };
 
 #endif //__GAMEENTITY_H_
