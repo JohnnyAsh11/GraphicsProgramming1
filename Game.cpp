@@ -56,7 +56,7 @@ void Game::Initialize()
 	Mesh* sphere = new Mesh("Models/sphere.graphics_obj");
 	Mesh* helix = new Mesh("Models/helix.graphics_obj");
 	Mesh* torus = new Mesh("Models/torus.graphics_obj");
-	Mesh* quad = new Mesh("Models/quad.graphics_obj");
+	Mesh* quad = new Mesh("Models/F1Car.graphics_obj");
 	Mesh* quadDoubleSided = new Mesh("Models/quad_double_sided.graphics_obj");
 
 	// Controls the amount of sets of Entities are created.
@@ -90,7 +90,7 @@ void Game::Initialize()
 			// Setting the scale and spacing out the models.
 			current.SetScale(fUniformScale, fUniformScale, fUniformScale);
 			current.SetPosition((i * 1.25f) - 4.0f, -1.0f + j, 0.0f);
-			current.Rotate(XMFLOAT3(0.0f, 2.0f, 0.0f));
+			current.Rotate(XMFLOAT3(0.0f, 2.6f, 0.0f));
 
 			// Setting the proper materials.
 			if (j == 0)
