@@ -23,88 +23,78 @@ using namespace DirectX;
 
 void Game::Initialize()
 {
+	// Seeding the random object.
+	srand(time(0));
+
 	// Initializing the Camera.
 	m_lCameras.push_back(std::shared_ptr<Camera>(new Camera(Window::AspectRatio(), XMFLOAT3(0.0f, 0.0f, -5.0f), 60.0f)));
 	m_lCameras.push_back(std::shared_ptr<Camera>(new Camera(Window::AspectRatio(), XMFLOAT3(2.5f, 0.0f, -5.0f), 45.0f)));
 	m_lCameras.push_back(std::shared_ptr<Camera>(new Camera(Window::AspectRatio(), XMFLOAT3(-2.5f, 0.0f, -5.0f), 75.0f)));
 	m_pActiveCamera = m_lCameras[0];
 
-#pragma region Mesh Creation
-	// Allocating the memory for both buffers.  Also setting the index values.
-	Vertex* vertices = new Vertex[36];
-	unsigned int* indices = new unsigned int[36];
-	for (int i = 0; i < 36; i++) indices[i] = i;
-
-	// Setting some variables for creating the circle.
-	int dSubsivisions = 12;
-	float fDeltaAngle = (2.0f * 3.14159265358979323846f) / dSubsivisions;
-	float fRadius = 0.25f;
-	XMFLOAT3 fOrigin = XMFLOAT3(-0.6f, +0.0f, +0.0f);
-	std::vector<XMFLOAT3> vertexPositions;
-
-	// Creating the vertices.
-	for (int i = 0; i < dSubsivisions; i++)
-	{
-		vertexPositions.push_back(XMFLOAT3(
-			static_cast<float>(cos(fDeltaAngle * i) * fRadius + fOrigin.x),
-			static_cast<float>(sin(fDeltaAngle * i) * fRadius + fOrigin.y),
-			0.0f));
-	}
-
-	// Populating the Vertex Buffer with the proper order of vertices.
-	for (int i = 0; i < dSubsivisions; i++)
-	{
-		int j = i * 3;
-		vertices[j] = { fOrigin, YELLOW };
-		vertices[j + 2] = { vertexPositions[i], BLUE };
-		vertices[j + 1] = { vertexPositions[(i + 1) % dSubsivisions], BLUE };
-	}
-
-	// Instantiating the mesh object.
-	Mesh* mesh1 = new Mesh(vertices, 36, indices, 36);
-
-	delete[] vertices;
-	delete[] indices;
-
-	// Setting the indices for the square.
-	indices = new unsigned int[6];
-	for (int i = 0; i < 6; i++) indices[i] = i;
-
-	// Setting the vertices for the square.
-	vertices = new Vertex[6];
-	vertices[0] = { XMFLOAT3(+0.9f, +0.25f, +0.0f), PURPLE };		// Center
-	vertices[1] = { XMFLOAT3(+0.9f, -0.5f, +0.0f), ORANGE };		// Bottom Right
-	vertices[2] = { XMFLOAT3(+0.5f, -0.5f, +0.0f), ORANGE };		// Bottom Left
-
-	vertices[3] = { XMFLOAT3(+0.5f, -0.5f, +0.0f), ORANGE };		// Center
-	vertices[5] = { XMFLOAT3(+0.9f, +0.25f, +0.0f), PURPLE };		// Top Right
-	vertices[4] = { XMFLOAT3(+0.5f, +0.25f, +0.0f), PURPLE };		// Top Left
-
-	// Instantiating the square mesh.
-	Mesh* mesh2 = new Mesh(vertices, 6, indices, 6);
-
-	delete[] vertices;
-	delete[] indices;
-#pragma endregion
-
-	std::shared_ptr<SimpleVertexShader> pVS = std::make_shared<SimpleVertexShader>(
+	std::shared_ptr<SimpleVertexShader> pBasicVS = std::make_shared<SimpleVertexShader>(
 		Graphics::Device, Graphics::Context, FixPath(L"VertexShader.cso").c_str());
-	std::shared_ptr<SimplePixelShader> pPS = std::make_shared<SimplePixelShader>(
+
+	std::shared_ptr<SimplePixelShader> pBasicPS = std::make_shared<SimplePixelShader>(
 		Graphics::Device, Graphics::Context, FixPath(L"PixelShader.cso").c_str());
+	std::shared_ptr<SimplePixelShader> pUVsPS = std::make_shared<SimplePixelShader>(
+		Graphics::Device, Graphics::Context, FixPath(L"DebugUVsPS.cso").c_str());
+	std::shared_ptr<SimplePixelShader> pNormalsPS = std::make_shared<SimplePixelShader>(
+		Graphics::Device, Graphics::Context, FixPath(L"DebugNormalsPS.cso").c_str());
+	std::shared_ptr<SimplePixelShader> pVoronoiPS = std::make_shared<SimplePixelShader>(
+		Graphics::Device, Graphics::Context, FixPath(L"VoronoiPS.cso").c_str());
 
-	Material* mat1 = new Material(pVS, pPS, XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
-	Material* mat2 = new Material(pVS, pPS, XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f));
-	Material* mat3 = new Material(pVS, pPS, XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f));
+	Material* mat1 = new Material(pBasicVS, pBasicPS, XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
+	Material* mat2 = new Material(pBasicVS, pUVsPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+	Material* mat3 = new Material(pBasicVS, pNormalsPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+	Material* mat4 = new Material(pBasicVS, pVoronoiPS, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 
-	for (unsigned int i = 0; i < 4; i++)
+	// Creating multiple sets of the 3D models.
+	for (UINT i = 0; i < 3; i++)
 	{
-		m_lEntities.push_back(Entity(mesh1, mat1));
+		m_lEntities.push_back(Entity(new Mesh("Models/cube.graphics_obj"), mat2));
+		m_lEntities.push_back(Entity(new Mesh("Models/cylinder.graphics_obj"), mat3));
+		m_lEntities.push_back(Entity(new Mesh("Models/helix.graphics_obj"), mat3));
+		m_lEntities.push_back(Entity(new Mesh("Models/sphere.graphics_obj"), mat1));
+		m_lEntities.push_back(Entity(new Mesh("Models/torus.graphics_obj"), mat2));
+		m_lEntities.push_back(Entity(new Mesh("Models/quad.graphics_obj"), mat3));
+		m_lEntities.push_back(Entity(new Mesh("Models/quad_double_sided.graphics_obj"), mat1));
 	}
-	m_lEntities.push_back(Entity(mesh2, mat3));
-	//m_lEntities[1].SetMaterial(mat2);
 
-	delete mesh1, mesh2;
-	delete mat1, mat2, mat3;
+	for (UINT j = 0; j < 3; j++)
+	{
+		for (UINT i = 0; i < m_lEntities.size() / 3; i++)
+		{
+			int index = i + (j * (m_lEntities.size() / 3));
+
+			// Setting the scale and getting the current Transform.
+			float fUniformScale = 0.25f;
+			Transform& current = m_lEntities[index].GetTransform();
+
+			// Setting the scale and spacing out the models.
+			current.SetScale(fUniformScale, fUniformScale, fUniformScale);
+			current.SetPosition((i * 1.25f) - 4.0f, -1.0f + j, 0.0f);
+			current.Rotate(XMFLOAT3(0.0f, 2.0f, 0.0f));
+
+			if (j == 0)
+			{
+				m_lEntities[index].SetMaterial(mat2);
+			}
+			else if (j == 1)
+			{
+				m_lEntities[index].SetMaterial(mat3);
+			}
+			else if (j == 2)
+			{
+				m_lEntities[index].SetMaterial(mat4);
+			}
+			else
+			{
+				m_lEntities[index].SetMaterial(mat1);
+			}
+		}
+	}
+	delete mat1, mat2, mat3, mat4;
 	
 	// Initialize ImGui itself & platform/renderer backends
 	IMGUI_CHECKVERSION();
@@ -145,8 +135,8 @@ void Game::Update(float deltaTime, float totalTime)
 	m_pActiveCamera->Update(deltaTime);
 
 	// Performing some fun transformations on one of the entities.
-	Transform& current = m_lEntities[0].GetTransform();
-	current.SetPosition(static_cast<float>(sin(totalTime)), 0.0f, 0.0f);
+	//Transform& current = m_lEntities[0].GetTransform();
+	//current.SetPosition(static_cast<float>(sin(totalTime)), 0.0f, 0.0f);
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE)) Window::Quit();

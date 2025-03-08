@@ -30,6 +30,12 @@ public:
 	/// <param name="a_dIndexCount">The amount of indices in the array.</param>
 	Mesh(Vertex* a_pVertices, int a_dVertexCount, unsigned int* a_pIndices, int a_dIndexCount);
 
+	/// <summary>
+	/// Loads in the vertices from an obj file.
+	/// </summary>
+	/// <param name="a_sFilepath">File path to the obj file.</param>
+	Mesh(const char* a_sFilepath);
+
 	#pragma region Rule of Three
 	/// <summary>
 	/// Destructs instances of the Mesh object.
