@@ -21,7 +21,7 @@ void Entity::SetMaterial(Material* a_pMaterial)
 	m_pMaterial = std::make_shared<Material>(*a_pMaterial);
 }
 
-void Entity::Draw(std::shared_ptr<Camera> a_pCamera)
+void Entity::Draw(std::shared_ptr<Camera> a_pCamera, float a_fTotalTime)
 {
 	m_pMaterial->GetVertexShader()->SetShader();
 	m_pMaterial->GetPixelShader()->SetShader();
@@ -36,14 +36,7 @@ void Entity::Draw(std::shared_ptr<Camera> a_pCamera)
 	// Pixel shader data setting.
 	std::shared_ptr<SimplePixelShader>ps = m_pMaterial->GetPixelShader();
 	ps->SetFloat4("colorTint", m_pMaterial->GetColor());		// The color tint of the entity.
-
-	float value = rand() % 100 / 100.0f;
-
-	// Generating 3 random values between 0 and 1.
-	ps->SetFloat("randX", rand() % 100 / 100.0f);
-	ps->SetFloat("randY", rand() % 100 / 100.0f);
-	ps->SetFloat("resolution", Window::AspectRatio());
-
+	ps->SetFloat("totalTime", a_fTotalTime);					// The total time that has elapsed in the program.
 	ps->CopyAllBufferData();
 
 	// Rendering the mesh to the window.

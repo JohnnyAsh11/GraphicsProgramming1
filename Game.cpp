@@ -44,28 +44,44 @@ void Game::Initialize()
 	std::shared_ptr<SimplePixelShader> pVoronoiPS = std::make_shared<SimplePixelShader>(
 		Graphics::Device, Graphics::Context, FixPath(L"VoronoiPS.cso").c_str());
 
-	Material* mat1 = new Material(pBasicVS, pBasicPS, XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
+	// Creating the materials.
+	Material* mat1 = new Material(pBasicVS, pBasicPS, XMFLOAT4(.6f, 0.0f, 1.0f, 1.0f));
 	Material* mat2 = new Material(pBasicVS, pUVsPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 	Material* mat3 = new Material(pBasicVS, pNormalsPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
-	Material* mat4 = new Material(pBasicVS, pVoronoiPS, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	Material* mat4 = new Material(pBasicVS, pVoronoiPS, XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f));
 
-	// Creating multiple sets of the 3D models.
-	for (UINT i = 0; i < 3; i++)
+	// Creating the 3D models.
+	Mesh* cube = new Mesh("Models/cube.graphics_obj");
+	Mesh* cylinder = new Mesh("Models/cylinder.graphics_obj");
+	Mesh* sphere = new Mesh("Models/sphere.graphics_obj");
+	Mesh* helix = new Mesh("Models/helix.graphics_obj");
+	Mesh* torus = new Mesh("Models/torus.graphics_obj");
+	Mesh* quad = new Mesh("Models/quad.graphics_obj");
+	Mesh* quadDoubleSided = new Mesh("Models/quad_double_sided.graphics_obj");
+
+	// Controls the amount of sets of Entities are created.
+	int dAmountOfSets = 4;
+
+	// Instantiating the Entities.
+	for (UINT i = 0; i < dAmountOfSets; i++)
 	{
-		m_lEntities.push_back(Entity(new Mesh("Models/cube.graphics_obj"), mat2));
-		m_lEntities.push_back(Entity(new Mesh("Models/cylinder.graphics_obj"), mat3));
-		m_lEntities.push_back(Entity(new Mesh("Models/helix.graphics_obj"), mat3));
-		m_lEntities.push_back(Entity(new Mesh("Models/sphere.graphics_obj"), mat1));
-		m_lEntities.push_back(Entity(new Mesh("Models/torus.graphics_obj"), mat2));
-		m_lEntities.push_back(Entity(new Mesh("Models/quad.graphics_obj"), mat3));
-		m_lEntities.push_back(Entity(new Mesh("Models/quad_double_sided.graphics_obj"), mat1));
+		m_lEntities.push_back(Entity(cube, mat1));
+		m_lEntities.push_back(Entity(cylinder, mat1));
+		m_lEntities.push_back(Entity(sphere, mat1));
+		m_lEntities.push_back(Entity(helix, mat1));
+		m_lEntities.push_back(Entity(torus, mat1));
+		m_lEntities.push_back(Entity(quadDoubleSided, mat1));
+		m_lEntities.push_back(Entity(quad, mat1));
 	}
 
-	for (UINT j = 0; j < 3; j++)
+	// Deleting all of the meshes.
+	delete cube, cylinder, helix, sphere, torus, quad, quadDoubleSided;
+
+	for (UINT j = 0; j < dAmountOfSets; j++)
 	{
-		for (UINT i = 0; i < m_lEntities.size() / 3; i++)
+		for (UINT i = 0; i < m_lEntities.size() / dAmountOfSets; i++)
 		{
-			int index = i + (j * (m_lEntities.size() / 3));
+			int index = i + (j * (m_lEntities.size() / dAmountOfSets));
 
 			// Setting the scale and getting the current Transform.
 			float fUniformScale = 0.25f;
@@ -76,6 +92,7 @@ void Game::Initialize()
 			current.SetPosition((i * 1.25f) - 4.0f, -1.0f + j, 0.0f);
 			current.Rotate(XMFLOAT3(0.0f, 2.0f, 0.0f));
 
+			// Setting the proper materials.
 			if (j == 0)
 			{
 				m_lEntities[index].SetMaterial(mat2);
@@ -94,6 +111,8 @@ void Game::Initialize()
 			}
 		}
 	}
+
+	// Deleting all of the materials.
 	delete mat1, mat2, mat3, mat4;
 	
 	// Initialize ImGui itself & platform/renderer backends
@@ -254,7 +273,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Rendering the entities.
 	for (unsigned int i = 0; i < m_lEntities.size(); i++)
 	{
-		m_lEntities[i].Draw(m_pActiveCamera);
+		m_lEntities[i].Draw(m_pActiveCamera, totalTime);
 	}
 
 	// Rendering ImGui

@@ -22,7 +22,7 @@ public:
 
 	void SetMaterial(Material* a_pMaterial);
 
-	void Draw(std::shared_ptr<Camera> a_pCamera);
+	void Draw(std::shared_ptr<Camera> a_pCamera, float a_fTotalTime);
 };
 
 #endif //__GAMEENTITY_H_

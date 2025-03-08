@@ -8,120 +8,73 @@ struct VertexToPixel
 cbuffer ExternalData : register(b0)
 {
     float4 colorTint;
-    float randX;
-    float randY;
-    float resolution;
+    float totalTime;
 }
 
-float2 random2(float2 p)
+// RandomVector helper function that I found online: https://iquilezles.org/articles/voronoilines/
+// My understanding is that it is using the UV coords as the equivalent of a random number.
+float2 randomVector(float2 UV, float offset)
 {
-    return sin(float2(dot(p, float2(127.1f, 311.7f)), dot(p, float2(269.5f, 183.3f)))) * 43758.5453f;
+    float2x2 m = float2x2(15.27f, 47.63f, 99.41f, 89.98f);
+    UV = frac(sin(mul(UV, m)) * 46839.32f);
+    return float2(sin(UV.y * (+offset)) * 0.5f + 0.5f, cos(UV.x * offset) * 0.5f + 0.5f);
 }
 
 float4 main(VertexToPixel input) : SV_TARGET
-{	
-    float2 st = input.screenPosition.xy / resolution;
-    st.x *= resolution;
-    st *= 3.0f;
+{
+    // Control variables for the algorithm.
+    float angleOffset = totalTime * 10.0f;
+    float cellDensity = 5.0f;
     
-    float4 color = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    float m_dist = 1;
+    // Variables for Voronoi.
+    float distFromCenter = 8.0f;
+    float distFromEdge = 8.0f;  
+    int2 cell = floor(input.uv * cellDensity);
+    float2 posInCell = frac(input.uv * cellDensity);    
+    float2 closestOffset;
     
     for (int y = -1; y <= 1; y++)
     {
         for (int x = -1; x <= 1; x++)
         {
-            // Neighbor place in the grid
-            float2 neighbor = float2(float(x), float(y));
+            // Creating the current cell to check.
+            int2 cellToCheck = int2(x, y);
+            
+            // Generating a random vector and adding that onto the difference of the position in the Cell and cell itself. 
+            float2 cellOffset = float2(cellToCheck) - posInCell + randomVector(cell + cellToCheck, angleOffset);
+            
+            // Not 100% how this line works, it was apart of the psuedocode I found though.
+            float distToPoint = dot(cellOffset, cellOffset);
 
-            float2 currentPoint = random2(st + neighbor);
-
-			// Animate the point
-            currentPoint = 0.5 + 0.5 * sin(randX + 6.2831 * currentPoint);
-
-			// Vector between the pixel and the point
-            float2 diff = neighbor + currentPoint - st;
-
-            // Distance to the point
-            float dist = length(diff);
-
-            // Keep the closer distance
-            m_dist = min(m_dist, dist);
+            // Keeping only the shortest distance and associated offset to that point.
+            if (distToPoint < distFromCenter)
+            {
+                distFromCenter = distToPoint;
+                closestOffset = cellOffset;
+            }
         }
     }
     
-    color += m_dist;
-    color += 1.0f - step(0.02f, m_dist);
-    color.r += step(0.98f, st.x) + step(0.98f, st.y);
-    color -= step(0.7f, abs(sin(27.0f * m_dist))) * 0.5f;
+    // Saving the square root of the distance from the center.
+    distFromCenter = sqrt(distFromCenter);
     
-    return color;
-}
+    for (int y = -1; y <= 1; y++)
+    {
+        for (int x = -1; x <= 1; x++)
+        {
+            // Repeating the same beginning process as the previous set of loops.
+            int2 cellToCheck = int2(x, y);
+            float2 cellOffset = float2(cellToCheck) - posInCell + randomVector(cell + cellToCheck, angleOffset);
+            
+            // Calculating the distance to the edge of the cell.
+            float distToEdge = dot(0.5f * (closestOffset + cellOffset), 
+                               normalize(cellOffset - closestOffset));
 
-/*
-
-#ifdef GL_ES
-precision mediump float;
-#endif
-
-uniform vec2 u_resolution;
-uniform vec2 u_mouse;
-uniform float u_time;
-
-vec2 random2( vec2 p ) {
-    return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);
-}
-
-void main() {
-    vec2 st = gl_FragCoord.xy/u_resolution.xy;
-    st.x *= u_resolution.x/u_resolution.y;
-    vec3 color = vec3(.0);
-
-    // Scale
-    st *= 3.;
-
-    // Tile the space
-    vec2 i_st = floor(st);
-    vec2 f_st = fract(st);
-
-    float m_dist = 1.;  // minimum distance
-
-    for (int y= -1; y <= 1; y++) {
-        for (int x= -1; x <= 1; x++) {
-            // Neighbor place in the grid
-            vec2 neighbor = vec2(float(x),float(y));
-
-            // Random position from current + neighbor place in the grid
-            vec2 point = random2(i_st + neighbor);
-
-			// Animate the point
-            point = 0.5 + 0.5*sin(u_time + 6.2831*point);
-
-			// Vector between the pixel and the point
-            vec2 diff = neighbor + point - f_st;
-
-            // Distance to the point
-            float dist = length(diff);
-
-            // Keep the closer distance
-            m_dist = min(m_dist, dist);
+            // Saving the smallest of those values.
+            distFromEdge = min(distFromEdge, distToEdge);
         }
     }
-
-    // Draw the min distance (distance field)
-    color += m_dist;
-
-    // Draw cell center
-    color += 1.-step(.02, m_dist);
-
-    // Draw grid
-    color.r += step(.98, f_st.x) + step(.98, f_st.y);
-
-    // Show isolines
-    // color -= step(.7,abs(sin(27.0*m_dist)))*.5;
-
-    gl_FragColor = vec4(color,1.0);
+    
+    // Storing the 2 calculated distances into any channel of the RGBa.
+    return float4(distFromEdge, 0.0f, distFromCenter, 1.0f) * colorTint;
 }
-
-
-*/
