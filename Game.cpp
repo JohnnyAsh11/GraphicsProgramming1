@@ -18,13 +18,15 @@
 
 #include "Material.h"
 
+#include "WICTextureLoader.h"
+
 // For the DirectX Math library
 using namespace DirectX;
 
 void Game::Initialize()
 {
 	// Seeding the random object.
-	srand(time(0));
+	srand(static_cast<unsigned int>(time(0)));
 
 	// Initializing the Camera.
 	m_lCameras.push_back(std::shared_ptr<Camera>(new Camera(Window::AspectRatio(), XMFLOAT3(0.0f, 0.0f, -5.0f), 60.0f)));
@@ -32,9 +34,36 @@ void Game::Initialize()
 	m_lCameras.push_back(std::shared_ptr<Camera>(new Camera(Window::AspectRatio(), XMFLOAT3(-2.5f, 0.0f, -5.0f), 75.0f)));
 	m_pActiveCamera = m_lCameras[0];
 
+
+	// Loading in the textures:
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pMossyBrickTexture;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pRockyTerrainTexture;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> pSamplerState;
+	CreateWICTextureFromFile(
+		Graphics::Device.Get(),
+		Graphics::Context.Get(),
+		L"Textures/mossy_brick.png",
+		nullptr,
+		&pMossyBrickTexture);
+	CreateWICTextureFromFile(
+		Graphics::Device.Get(),
+		Graphics::Context.Get(),
+		L"Textures/rocky_terrain.png",
+		nullptr,
+		&pRockyTerrainTexture);
+
+	D3D11_SAMPLER_DESC sampleDesc;
+	sampleDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	sampleDesc.MaxAnisotropy = 8;
+	sampleDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	sampleDesc.MipLODBias = 0;
+	Graphics::Device.Get()->CreateSamplerState(&sampleDesc, &pSamplerState);
+
 	std::shared_ptr<SimpleVertexShader> pBasicVS = std::make_shared<SimpleVertexShader>(
 		Graphics::Device, Graphics::Context, FixPath(L"VertexShader.cso").c_str());
-
 	std::shared_ptr<SimplePixelShader> pBasicPS = std::make_shared<SimplePixelShader>(
 		Graphics::Device, Graphics::Context, FixPath(L"PixelShader.cso").c_str());
 	std::shared_ptr<SimplePixelShader> pUVsPS = std::make_shared<SimplePixelShader>(
@@ -56,14 +85,14 @@ void Game::Initialize()
 	Mesh* sphere = new Mesh("Models/sphere.graphics_obj");
 	Mesh* helix = new Mesh("Models/helix.graphics_obj");
 	Mesh* torus = new Mesh("Models/torus.graphics_obj");
-	Mesh* quad = new Mesh("Models/F1Car.graphics_obj");
+	Mesh* quad = new Mesh("Models/quad.graphics_obj");
 	Mesh* quadDoubleSided = new Mesh("Models/quad_double_sided.graphics_obj");
 
 	// Controls the amount of sets of Entities are created.
 	int dAmountOfSets = 4;
 
 	// Instantiating the Entities.
-	for (UINT i = 0; i < dAmountOfSets; i++)
+	for (int i = 0; i < dAmountOfSets; i++)
 	{
 		m_lEntities.push_back(Entity(cube, mat1));
 		m_lEntities.push_back(Entity(cylinder, mat1));
@@ -77,11 +106,11 @@ void Game::Initialize()
 	// Deleting all of the meshes.
 	delete cube, cylinder, helix, sphere, torus, quad, quadDoubleSided;
 
-	for (UINT j = 0; j < dAmountOfSets; j++)
+	for (int j = 0; j < dAmountOfSets; j++)
 	{
-		for (UINT i = 0; i < m_lEntities.size() / dAmountOfSets; i++)
+		for (int i = 0; i < m_lEntities.size() / dAmountOfSets; i++)
 		{
-			int index = i + (j * (m_lEntities.size() / dAmountOfSets));
+			int index = i + (j * (static_cast<int>(m_lEntities.size()) / dAmountOfSets));
 
 			// Setting the scale and getting the current Transform.
 			float fUniformScale = 0.25f;
@@ -114,7 +143,7 @@ void Game::Initialize()
 
 	// Deleting all of the materials.
 	delete mat1, mat2, mat3, mat4;
-	
+
 	// Initialize ImGui itself & platform/renderer backends
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
