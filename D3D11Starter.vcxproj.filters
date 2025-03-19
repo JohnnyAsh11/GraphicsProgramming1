@@ -161,4 +161,7 @@
   <ItemGroup>
     <Text Include="ImGui\LICENSE.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
 </Project>
