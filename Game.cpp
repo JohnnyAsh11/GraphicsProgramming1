@@ -34,11 +34,10 @@ void Game::Initialize()
 	m_lCameras.push_back(std::shared_ptr<Camera>(new Camera(Window::AspectRatio(), XMFLOAT3(-2.5f, 0.0f, -5.0f), 75.0f)));
 	m_pActiveCamera = m_lCameras[0];
 
-
 	// Loading in the textures:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pMossyBrickTexture;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pRockyTerrainTexture;
-	Microsoft::WRL::ComPtr<ID3D11SamplerState> pSamplerState;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> pSampler;
 	CreateWICTextureFromFile(
 		Graphics::Device.Get(),
 		Graphics::Context.Get(),
@@ -52,6 +51,7 @@ void Game::Initialize()
 		nullptr,
 		&pRockyTerrainTexture);
 
+	// Creating the SampleState
 	D3D11_SAMPLER_DESC sampleDesc;
 	sampleDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampleDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -60,7 +60,9 @@ void Game::Initialize()
 	sampleDesc.MaxAnisotropy = 8;
 	sampleDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	sampleDesc.MipLODBias = 0;
-	Graphics::Device.Get()->CreateSamplerState(&sampleDesc, &pSamplerState);
+	sampleDesc.MinLOD = 0;
+	sampleDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	Graphics::Device.Get()->CreateSamplerState(&sampleDesc, &pSampler);
 
 	std::shared_ptr<SimpleVertexShader> pBasicVS = std::make_shared<SimpleVertexShader>(
 		Graphics::Device, Graphics::Context, FixPath(L"VertexShader.cso").c_str());
@@ -74,10 +76,15 @@ void Game::Initialize()
 		Graphics::Device, Graphics::Context, FixPath(L"VoronoiPS.cso").c_str());
 
 	// Creating the materials.
-	Material* mat1 = new Material(pBasicVS, pBasicPS, XMFLOAT4(.6f, 0.0f, 1.0f, 1.0f));
-	Material* mat2 = new Material(pBasicVS, pUVsPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
-	Material* mat3 = new Material(pBasicVS, pNormalsPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
-	Material* mat4 = new Material(pBasicVS, pVoronoiPS, XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f));
+	Material* matMossyBrick = new Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+	Material* matRockyEarth = new Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+	Material* matUV = new Material(pBasicVS, pUVsPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+	Material* matNormalMap = new Material(pBasicVS, pNormalsPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+	Material* matVoronoi = new Material(pBasicVS, pVoronoiPS, XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f));
+	matMossyBrick->AddSampler("BasicSampler", pSampler);
+	matRockyEarth->AddSampler("BasicSampler", pSampler);
+	matMossyBrick->AddTexturesSRV("SurfaceTexture", pMossyBrickTexture);
+	matRockyEarth->AddTexturesSRV("SurfaceTexture", pRockyTerrainTexture);
 
 	// Creating the 3D models.
 	Mesh* cube = new Mesh("Models/cube.graphics_obj");
@@ -89,18 +96,18 @@ void Game::Initialize()
 	Mesh* quadDoubleSided = new Mesh("Models/quad_double_sided.graphics_obj");
 
 	// Controls the amount of sets of Entities are created.
-	int dAmountOfSets = 4;
+	int dAmountOfSets = 5;
 
 	// Instantiating the Entities.
 	for (int i = 0; i < dAmountOfSets; i++)
 	{
-		m_lEntities.push_back(Entity(cube, mat1));
-		m_lEntities.push_back(Entity(cylinder, mat1));
-		m_lEntities.push_back(Entity(sphere, mat1));
-		m_lEntities.push_back(Entity(helix, mat1));
-		m_lEntities.push_back(Entity(torus, mat1));
-		m_lEntities.push_back(Entity(quadDoubleSided, mat1));
-		m_lEntities.push_back(Entity(quad, mat1));
+		m_lEntities.push_back(Entity(cube, matMossyBrick));
+		m_lEntities.push_back(Entity(cylinder, matMossyBrick));
+		m_lEntities.push_back(Entity(sphere, matMossyBrick));
+		m_lEntities.push_back(Entity(helix, matMossyBrick));
+		m_lEntities.push_back(Entity(torus, matMossyBrick));
+		m_lEntities.push_back(Entity(quadDoubleSided, matMossyBrick));
+		m_lEntities.push_back(Entity(quad, matMossyBrick));
 	}
 
 	// Deleting all of the meshes.
@@ -124,25 +131,38 @@ void Game::Initialize()
 			// Setting the proper materials.
 			if (j == 0)
 			{
-				m_lEntities[index].SetMaterial(mat2);
+				m_lEntities[index].SetMaterial(matMossyBrick);
 			}
 			else if (j == 1)
 			{
-				m_lEntities[index].SetMaterial(mat3);
+				m_lEntities[index].SetMaterial(matRockyEarth);
+
+				// - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+				//		Code for assignment 8 specifically
+				// Changes the color of material2 after a certain iteration.
+				if (i > 1)
+				{
+					matRockyEarth->SetColor(XMFLOAT4(1.0f, 0.2f, 1.0f, 1.0f));
+				}
+				// - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 			}
 			else if (j == 2)
 			{
-				m_lEntities[index].SetMaterial(mat4);
+				m_lEntities[index].SetMaterial(matUV);
 			}
-			else
+			else if (j == 3)
 			{
-				m_lEntities[index].SetMaterial(mat1);
+				m_lEntities[index].SetMaterial(matNormalMap);
+			}
+			else if (j == 4)
+			{
+				m_lEntities[index].SetMaterial(matVoronoi);
 			}
 		}
 	}
 
 	// Deleting all of the materials.
-	delete mat1, mat2, mat3, mat4;
+	delete matMossyBrick, matRockyEarth, matUV, matNormalMap, matVoronoi;
 
 	// Initialize ImGui itself & platform/renderer backends
 	IMGUI_CHECKVERSION();

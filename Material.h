@@ -2,6 +2,7 @@
 #define __MATERIAL_H_
 
 #include <memory>
+#include <unordered_map>
 #include "SimpleShader.h"
 
 class Material
@@ -10,6 +11,10 @@ private:
 	std::shared_ptr<SimpleVertexShader> m_pVertexShader;
 	std::shared_ptr<SimplePixelShader> m_pPixelShader;
 	DirectX::XMFLOAT4 m_v4ColorTint;
+
+	// Texture/sampler hash tables.
+	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> m_mTextureSRVs;
+	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11SamplerState>> m_mSamplers;
 
 public:
 	/// <summary>
@@ -63,6 +68,23 @@ public:
 	/// Sets the color tint.
 	/// </summary>
 	void SetColor(DirectX::XMFLOAT4 a_v4ColorTint);
+	/// <summary>
+	/// Adds a key value pair to the unordered map of texture SRVs.
+	/// </summary>
+	/// <param name="a_sTextureName">The name of the texture in the shaders.</param>
+	/// <param name="a_pSRV">The Shader Resource View object pointer.</param>
+	void AddTexturesSRV(std::string a_sTextureName, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> a_pSRV);
+	/// <summary>
+	/// Adds a key value pair to the unordered map of sampler states.
+	/// </summary>
+	/// <param name="a_sSamplerName">he name of the sampler in the shaders.</param>
+	/// <param name="a_pSampler">The sampler object pointer.</param>
+	void AddSampler(std::string a_sSamplerName, Microsoft::WRL::ComPtr<ID3D11SamplerState> a_pSampler);
+
+	/// <summary>
+	/// Sets all members from the unordered_maps for texture rendering.
+	/// </summary>
+	void PrepMaterialForDraw();
 };
 
 #endif //__MATERIAL_H_
