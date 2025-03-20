@@ -45,6 +45,9 @@ std::shared_ptr<SimpleVertexShader> Material::GetVertexShader() { return m_pVert
 std::shared_ptr<SimplePixelShader> Material::GetPixelShader() { return m_pPixelShader; }
 DirectX::XMFLOAT4 Material::GetColor() { return m_v4ColorTint; }
 
+std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> Material::GetTextures()
+{ return m_mTextureSRVs; }
+
 void Material::SetVertexShader(std::shared_ptr<SimpleVertexShader> a_pVertexShader) { m_pVertexShader = a_pVertexShader; }
 void Material::SetPixelShader(std::shared_ptr<SimplePixelShader> a_pPixelShader) { m_pPixelShader = a_pPixelShader; }
 void Material::SetColor(DirectX::XMFLOAT4 a_v4ColorTint) { m_v4ColorTint = a_v4ColorTint; }

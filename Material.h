@@ -57,6 +57,11 @@ public:
 	DirectX::XMFLOAT4 GetColor();
 
 	/// <summary>
+	/// Gets the unordered_map of textures for use outside of the material.
+	/// </summary>
+	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> GetTextures();
+
+	/// <summary>
 	/// Sets the vertex shader.
 	/// </summary>
 	void SetVertexShader(std::shared_ptr<SimpleVertexShader> a_pVertexShader);

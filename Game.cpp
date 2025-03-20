@@ -290,12 +290,18 @@ void Game::UpdateImGui(float deltaTime)
 					("Scale##" + std::to_string(i)).c_str(),
 					&current.GetScale().x,
 					0.05f);
-				if (ImGui::TreeNode("Material Info:"))
+				if (ImGui::TreeNode("Material Textures:"))
 				{
-					//ImGui::ColorEdit4("Texture Count: %d", m_lEntities[i].GetMaterial().get()->GetColor()));
+					// Looping through the textures in the entity's map,
+					for (const auto& t : m_lEntities[i].GetMaterial().get()->GetTextures())
+					{
+						// And displaying them in the UI.
+						//		Casting to a void ptr then a ImTextureID.
+						void* p = t.second.Get();
+						ImGui::Image((ImTextureID)p, ImVec2(200, 200));
+					}
 					ImGui::TreePop();
 				}
-
 				ImGui::TreePop();
 			}
 		}
