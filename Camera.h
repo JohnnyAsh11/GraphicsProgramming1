@@ -16,6 +16,7 @@ public:
 
 	DirectX::XMFLOAT4X4 GetView();
 	DirectX::XMFLOAT4X4 GetProjection();
+	Transform GetTransform();
 
 	void UpdateProjection(float a_fAspectRatio);
 	void UpdateView();

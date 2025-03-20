@@ -38,6 +38,7 @@ void Entity::Draw(std::shared_ptr<Camera> a_pCamera, float a_fTotalTime)
 	std::shared_ptr<SimplePixelShader>ps = m_pMaterial->GetPixelShader();
 	ps->SetFloat4("colorTint", m_pMaterial->GetColor());		// The color tint of the entity.
 	ps->SetFloat("totalTime", a_fTotalTime);					// The total time that has elapsed in the program.
+	ps->SetFloat3("cameraPosition", a_pCamera.get()->GetTransform().GetPosition());
 
 	// TODO: make the scale and offset both fields of the Material.
 	ps->SetFloat2("scale", DirectX::XMFLOAT2(2.0f, 1.0f));		// The scale of the texture in the shader. 

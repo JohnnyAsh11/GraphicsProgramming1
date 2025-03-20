@@ -10,6 +10,7 @@ struct VertexToPixel
 	float4 screenPosition : SV_POSITION;
     float3 normal : NORMAL;
     float2 uv : TEXCOORD;
+    float worldPos : POSITION;
 };
 
 cbuffer ExternalData : register(b0)
@@ -30,6 +31,7 @@ VertexToPixel main( VertexShaderInput input )
 	output.screenPosition = mul(wvp, float4(input.localPosition, 1.0f));
 	output.normal = input.normal;
     output.uv = input.uv;
+    output.worldPos = normalize(mul(world, float4(input.localPosition, 1.0f)).xyz);
 	
 	return output;
 }
