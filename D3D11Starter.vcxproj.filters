@@ -157,6 +157,9 @@
     <FxCompile Include="VoronoiPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="PixelShaderDualTexture.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ImGui\LICENSE.txt" />

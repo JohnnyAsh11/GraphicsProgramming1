@@ -12,8 +12,8 @@
 class Game
 {
 private:
-	//float m_fBackgroundColor[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
-	float m_fBackgroundColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	float m_fBackgroundColor[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
+	//float m_fBackgroundColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	bool m_bDemoVisibility;
 
 	std::vector<std::shared_ptr<Camera>> m_lCameras;

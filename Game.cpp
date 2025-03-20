@@ -37,6 +37,7 @@ void Game::Initialize()
 	// Loading in the textures:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pMossyBrickTexture;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pRockyTerrainTexture;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pBrokeGlassTexture;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> pSampler;
 	CreateWICTextureFromFile(
 		Graphics::Device.Get(),
@@ -50,6 +51,12 @@ void Game::Initialize()
 		L"Textures/rocky_terrain.png",
 		nullptr,
 		&pRockyTerrainTexture);
+	CreateWICTextureFromFile(
+		Graphics::Device.Get(),
+		Graphics::Context.Get(),
+		L"Textures/BrokeGlass.png",
+		nullptr,
+		&pBrokeGlassTexture);
 
 	// Creating the SampleState
 	D3D11_SAMPLER_DESC sampleDesc;
@@ -68,6 +75,8 @@ void Game::Initialize()
 		Graphics::Device, Graphics::Context, FixPath(L"VertexShader.cso").c_str());
 	std::shared_ptr<SimplePixelShader> pBasicPS = std::make_shared<SimplePixelShader>(
 		Graphics::Device, Graphics::Context, FixPath(L"PixelShader.cso").c_str());
+	std::shared_ptr<SimplePixelShader> pDualTexturePS = std::make_shared<SimplePixelShader>(
+		Graphics::Device, Graphics::Context, FixPath(L"PixelShaderDualTexture.cso").c_str());
 	std::shared_ptr<SimplePixelShader> pUVsPS = std::make_shared<SimplePixelShader>(
 		Graphics::Device, Graphics::Context, FixPath(L"DebugUVsPS.cso").c_str());
 	std::shared_ptr<SimplePixelShader> pNormalsPS = std::make_shared<SimplePixelShader>(
@@ -76,15 +85,17 @@ void Game::Initialize()
 		Graphics::Device, Graphics::Context, FixPath(L"VoronoiPS.cso").c_str());
 
 	// Creating the materials.
-	std::shared_ptr<Material> matMossyBrick = std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)));
+	std::shared_ptr<Material> matMossyBrick = std::make_shared<Material>(Material(pBasicVS, pDualTexturePS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)));
 	std::shared_ptr<Material> matRockyEarth = std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)));
 	std::shared_ptr<Material> matUV = std::make_shared<Material>(Material(pBasicVS, pUVsPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)));
 	std::shared_ptr<Material> matNormalMap = std::make_shared<Material>(Material(pBasicVS, pNormalsPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)));
 	std::shared_ptr<Material> matVoronoi = std::make_shared<Material>(Material(pBasicVS, pVoronoiPS, XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f)));
-	matMossyBrick->AddSampler("BasicSampler", pSampler);
 	matRockyEarth->AddSampler("BasicSampler", pSampler);
-	matMossyBrick->AddTexturesSRV("SurfaceTexture", pMossyBrickTexture);
 	matRockyEarth->AddTexturesSRV("SurfaceTexture", pRockyTerrainTexture);
+
+	matMossyBrick->AddSampler("BasicSampler", pSampler);
+	matMossyBrick->AddTexturesSRV("SurfaceTexture", pMossyBrickTexture);
+	matMossyBrick->AddTexturesSRV("AlternateTexture", pBrokeGlassTexture);
 
 	// Creating the 3D models.
 	std::shared_ptr<Mesh> cube = std::make_shared<Mesh>(Mesh("Models/cube.graphics_obj"));
@@ -200,10 +211,10 @@ void Game::Update(float deltaTime, float totalTime)
 	//Transform& current = m_lEntities[0].GetTransform();
 	//current.SetPosition(static_cast<float>(sin(totalTime)), 0.0f, 0.0f);
 
-	//for (unsigned int i = 0; i < m_lEntities.size(); i++)
-	//{
-	//	m_lEntities[i].GetTransform().Rotate(XMFLOAT3(0.0f, deltaTime, 0.0f));
-	//}
+	for (unsigned int i = 0; i < m_lEntities.size(); i++)
+	{
+		m_lEntities[i].GetTransform().Rotate(XMFLOAT3(0.0f, deltaTime, 0.0f));
+	}
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE)) Window::Quit();
@@ -279,6 +290,11 @@ void Game::UpdateImGui(float deltaTime)
 					("Scale##" + std::to_string(i)).c_str(),
 					&current.GetScale().x,
 					0.05f);
+				if (ImGui::TreeNode("Material Info:"))
+				{
+					//ImGui::ColorEdit4("Texture Count: %d", m_lEntities[i].GetMaterial().get()->GetColor()));
+					ImGui::TreePop();
+				}
 
 				ImGui::TreePop();
 			}
