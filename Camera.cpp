@@ -27,6 +27,11 @@ DirectX::XMFLOAT4X4 Camera::GetProjection()
 	return m_m4Projection;
 }
 
+Transform Camera::GetTransform()
+{
+	return m_tTransform;
+}
+
 void Camera::UpdateProjection(float a_fAspectRatio)
 {
 	// Creating the Projection matrix.

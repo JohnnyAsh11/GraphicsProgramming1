@@ -96,7 +96,7 @@ void Game::Initialize()
 	Mesh* quadDoubleSided = new Mesh("Models/quad_double_sided.graphics_obj");
 
 	// Controls the amount of sets of Entities are created.
-	int dAmountOfSets = 5;
+	int dAmountOfSets = 2;
 
 	// Instantiating the Entities.
 	for (int i = 0; i < dAmountOfSets; i++)
@@ -205,6 +205,11 @@ void Game::Update(float deltaTime, float totalTime)
 	// Performing some fun transformations on one of the entities.
 	//Transform& current = m_lEntities[0].GetTransform();
 	//current.SetPosition(static_cast<float>(sin(totalTime)), 0.0f, 0.0f);
+
+	//for (unsigned int i = 0; i < m_lEntities.size(); i++)
+	//{
+	//	m_lEntities[i].GetTransform().Rotate(XMFLOAT3(0.0f, deltaTime, 0.0f));
+	//}
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE)) Window::Quit();
