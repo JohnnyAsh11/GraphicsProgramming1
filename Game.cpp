@@ -76,24 +76,24 @@ void Game::Initialize()
 		Graphics::Device, Graphics::Context, FixPath(L"VoronoiPS.cso").c_str());
 
 	// Creating the materials.
-	Material* matMossyBrick = new Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
-	Material* matRockyEarth = new Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
-	Material* matUV = new Material(pBasicVS, pUVsPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
-	Material* matNormalMap = new Material(pBasicVS, pNormalsPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
-	Material* matVoronoi = new Material(pBasicVS, pVoronoiPS, XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f));
+	std::shared_ptr<Material> matMossyBrick = std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)));
+	std::shared_ptr<Material> matRockyEarth = std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)));
+	std::shared_ptr<Material> matUV = std::make_shared<Material>(Material(pBasicVS, pUVsPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)));
+	std::shared_ptr<Material> matNormalMap = std::make_shared<Material>(Material(pBasicVS, pNormalsPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)));
+	std::shared_ptr<Material> matVoronoi = std::make_shared<Material>(Material(pBasicVS, pVoronoiPS, XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f)));
 	matMossyBrick->AddSampler("BasicSampler", pSampler);
 	matRockyEarth->AddSampler("BasicSampler", pSampler);
 	matMossyBrick->AddTexturesSRV("SurfaceTexture", pMossyBrickTexture);
 	matRockyEarth->AddTexturesSRV("SurfaceTexture", pRockyTerrainTexture);
 
 	// Creating the 3D models.
-	Mesh* cube = new Mesh("Models/cube.graphics_obj");
-	Mesh* cylinder = new Mesh("Models/cylinder.graphics_obj");
-	Mesh* sphere = new Mesh("Models/sphere.graphics_obj");
-	Mesh* helix = new Mesh("Models/helix.graphics_obj");
-	Mesh* torus = new Mesh("Models/torus.graphics_obj");
-	Mesh* quad = new Mesh("Models/quad.graphics_obj");
-	Mesh* quadDoubleSided = new Mesh("Models/quad_double_sided.graphics_obj");
+	std::shared_ptr<Mesh> cube = std::make_shared<Mesh>(Mesh("Models/cube.graphics_obj"));
+	std::shared_ptr<Mesh> cylinder = std::make_shared<Mesh>(Mesh("Models/cylinder.graphics_obj"));
+	std::shared_ptr<Mesh> sphere = std::make_shared<Mesh>(Mesh("Models/sphere.graphics_obj"));
+	std::shared_ptr<Mesh> helix = std::make_shared<Mesh>(Mesh("Models/helix.graphics_obj"));
+	std::shared_ptr<Mesh> torus = std::make_shared<Mesh>(Mesh("Models/torus.graphics_obj"));
+	std::shared_ptr<Mesh> quad = std::make_shared<Mesh>(Mesh("Models/quad.graphics_obj"));
+	std::shared_ptr<Mesh> quadDoubleSided = std::make_shared<Mesh>(Mesh("Models/quad_double_sided.graphics_obj"));
 
 	// Controls the amount of sets of Entities are created.
 	int dAmountOfSets = 5;
@@ -109,9 +109,6 @@ void Game::Initialize()
 		m_lEntities.push_back(Entity(quadDoubleSided, matMossyBrick));
 		m_lEntities.push_back(Entity(quad, matMossyBrick));
 	}
-
-	// Deleting all of the meshes.
-	delete cube, cylinder, helix, sphere, torus, quad, quadDoubleSided;
 
 	for (int j = 0; j < dAmountOfSets; j++)
 	{
@@ -160,9 +157,6 @@ void Game::Initialize()
 			}
 		}
 	}
-
-	// Deleting all of the materials.
-	delete matMossyBrick, matRockyEarth, matUV, matNormalMap, matVoronoi;
 
 	// Initialize ImGui itself & platform/renderer backends
 	IMGUI_CHECKVERSION();

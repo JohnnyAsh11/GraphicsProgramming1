@@ -2,7 +2,7 @@
 #include "Graphics.h"
 #include "Window.h"
 
-Entity::Entity(Mesh* a_pMesh, Material* a_pMaterial)
+Entity::Entity(std::shared_ptr<Mesh> a_pMesh, std::shared_ptr<Material> a_pMaterial)
 {
 	m_pMesh = std::make_shared<Mesh>(*a_pMesh);
 	m_pMaterial = std::make_shared<Material>(*a_pMaterial);
@@ -15,7 +15,7 @@ std::shared_ptr<Mesh> Entity::GetMesh() { return std::shared_ptr<Mesh>(); }
 std::shared_ptr<Material> Entity::GetMaterial() { return m_pMaterial; }
 
 // Setters
-void Entity::SetMaterial(Material* a_pMaterial) 
+void Entity::SetMaterial(std::shared_ptr<Material> a_pMaterial)
 {
 	m_pMaterial.reset();
 	m_pMaterial = std::make_shared<Material>(*a_pMaterial);

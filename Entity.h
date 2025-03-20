@@ -14,13 +14,13 @@ private:
 	Transform m_tTransform;
 
 public:
-	Entity(Mesh* a_pMesh, Material* a_pMaterial);
+	Entity(std::shared_ptr<Mesh> a_pMesh, std::shared_ptr<Material> a_pMaterial);
 
 	Transform& GetTransform();
 	std::shared_ptr<Mesh> GetMesh();
 	std::shared_ptr<Material> GetMaterial();
 
-	void SetMaterial(Material* a_pMaterial);
+	void SetMaterial(std::shared_ptr<Material> a_pMaterial);
 
 	void Draw(std::shared_ptr<Camera> a_pCamera, float a_fTotalTime);
 };
