@@ -21,8 +21,8 @@ cbuffer ExternalData : register(b0)
 float4 main(VertexToPixel input) : SV_TARGET
 {
     //input.normal = normalize(input.normal);
-    float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv * scale + offset);
-    surfaceColor += AlternateTexture.Sample(BasicSampler, input.uv);
+    float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv * scale + offset).xyz;
+    surfaceColor += AlternateTexture.Sample(BasicSampler, input.uv).xyz;
     
     //float3 totalLight = float3(0, 0, 0);
     //

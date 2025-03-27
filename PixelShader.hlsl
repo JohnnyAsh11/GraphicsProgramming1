@@ -107,7 +107,7 @@ float3 PointLight(
 float4 main(VertexToPixel input) : SV_TARGET
 {	
     input.normal = normalize(input.normal);
-    float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv * scale + offset);
+    float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv * scale + offset).xyz;
     
     // Looping through all lights and calculating their effects.
     float3 totalLight = ambient;    

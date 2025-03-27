@@ -58,12 +58,12 @@ float4 main(VertexToPixel input) : SV_TARGET
     // Saving the square root of the distance from the center.
     distFromCenter = sqrt(distFromCenter);
     
-    for (int y = -1; y <= 1; y++)
+    for (int j = -1; j <= 1; j++)
     {
         for (int x = -1; x <= 1; x++)
         {
             // Repeating the same beginning process as the previous set of loops.
-            int2 cellToCheck = int2(x, y);
+            int2 cellToCheck = int2(x, j);
             float2 cellOffset = float2(cellToCheck) - posInCell + randomVector(cell + cellToCheck, angleOffset);
             
             // Calculating the distance to the edge of the cell.
