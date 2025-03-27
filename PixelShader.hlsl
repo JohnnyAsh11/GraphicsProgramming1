@@ -21,7 +21,11 @@ cbuffer ExternalData : register(b0)
     Light lights[MAX_LIGHT_COUNT];
 }
 
-float3 Diffuse(Light a_lCurrentLight, float3 a_v3Direction, float3 a_v3Normal, float3 a_v3SurfaceColor)
+float3 Diffuse(
+    Light a_lCurrentLight, 
+    float3 a_v3Direction, 
+    float3 a_v3Normal, 
+    float3 a_v3SurfaceColor)
 {
     // Calculating the diffuse color.
     float3 diffuseColor = a_lCurrentLight.Color * a_lCurrentLight.Intensity * a_v3SurfaceColor;
@@ -30,7 +34,10 @@ float3 Diffuse(Light a_lCurrentLight, float3 a_v3Direction, float3 a_v3Normal, f
     return max(dot(a_v3Normal, -a_v3Direction), 0) * diffuseColor;
 }
 
-float3 SpecularHighlight(float3 a_v3Direction, float3 a_v3Normal, float3 a_v3WorldPos)
+float3 SpecularHighlight(
+    float3 a_v3Direction,
+    float3 a_v3Normal, 
+    float3 a_v3WorldPos)
 {
     // Calculating the relfection and view vectors.
     float3 R = reflect(a_v3Direction, a_v3Normal);
@@ -49,7 +56,9 @@ float3 SpecularHighlight(float3 a_v3Direction, float3 a_v3Normal, float3 a_v3Wor
     return spec;
 }
 
-float Attenuate(Light a_lCurrentLight, float3 a_v3WorldPos)
+float Attenuate(
+    Light a_lCurrentLight, 
+    float3 a_v3WorldPos)
 {
     float dist = distance(a_lCurrentLight.Position, a_v3WorldPos);
     float att = saturate(1.0f - (dist * dist / (a_lCurrentLight.Range * a_lCurrentLight.Range)));
