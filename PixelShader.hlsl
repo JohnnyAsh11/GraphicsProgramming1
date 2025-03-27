@@ -30,7 +30,7 @@ float3 Diffuse(Light a_lCurrentLight, float3 a_v3Direction, float3 a_v3Normal, f
     return max(dot(a_v3Normal, -a_v3Direction), 0) * diffuseColor;
 }
 
-float SpecularHighlight(float3 a_v3Direction, float3 a_v3Normal, float3 a_v3WorldPos)
+float3 SpecularHighlight(float3 a_v3Direction, float3 a_v3Normal, float3 a_v3WorldPos)
 {
     // Calculating the relfection and view vectors.
     float3 R = reflect(a_v3Direction, a_v3Normal);
@@ -56,6 +56,54 @@ float Attenuate(Light a_lCurrentLight, float3 a_v3WorldPos)
     return att * att;
 }
 
+float SpotlightAttenuation(
+    Light a_lCurrentLight,
+    float3 a_v3WorldPos)
+{
+    // Getting a vector from the light to the pixel.
+    float3 lightToPixel = normalize(a_v3WorldPos - a_lCurrentLight.Position);    
+    float spotCos = dot(lightToPixel, -a_lCurrentLight.Direction);
+    
+    // Getting the cos of the 2 angles.  They are already expected to be in radians.
+    float innerCos = cos(a_lCurrentLight.SpotInnerAngle);
+    float outerCos = cos(a_lCurrentLight.SpotOuterAngle);
+    
+    // Getting the actual attenuation of the spotlight.
+    float spotFactor = saturate((spotCos - outerCos) / (innerCos - outerCos));
+    return pow(spotFactor, 2);
+}
+
+float3 DirectionalLight(
+    Light a_lCurrentLight, 
+    float3 a_v3Direction, 
+    float3 a_v3Normal,
+    float3 a_v3SurfaceColor,
+    float3 a_v3WorldPos)
+{
+    return Diffuse(a_lCurrentLight, a_v3Direction, a_v3Normal, a_v3SurfaceColor) + 
+           SpecularHighlight(a_lCurrentLight.Direction, a_v3Normal, a_v3WorldPos) *
+           a_v3SurfaceColor;
+}
+
+float3 PointLight(
+    Light a_lCurrentLight,
+    float3 a_v3WorldPos,
+    float3 a_v3Normal,
+    float3 a_v3SurfaceColor)
+{
+    // Calculating the vector to the light from the pixel.
+    float3 lightToWorld = normalize(a_lCurrentLight.Position - a_v3WorldPos);
+           
+    // Calculating the attenuation for the point light.
+    float attenuation = Attenuate(a_lCurrentLight, a_v3WorldPos);
+            
+    // Finally, calculating the diffuse and spec with the attenuation scale.
+    float3 diffuseTerm = Diffuse(a_lCurrentLight, -lightToWorld, a_v3Normal, a_v3SurfaceColor) * attenuation;
+    float3 specTerm = SpecularHighlight(lightToWorld, a_v3Normal, a_v3WorldPos) * attenuation;
+    
+    return diffuseTerm + specTerm;
+}
+
 float4 main(VertexToPixel input) : SV_TARGET
 {	
     input.normal = normalize(input.normal);
@@ -65,31 +113,33 @@ float4 main(VertexToPixel input) : SV_TARGET
     float3 totalLight = ambient;    
     for (int i = 0; i < MAX_LIGHT_COUNT; i++)
     {
-        // Calculating the diffuse and specular.
-        float3 diffuseTerm;
-        float3 specTerm;
-        float attenuation = 1.0f;
-        
         if (lights[i].Type == LIGHT_TYPE_DIRECTIONAL)
         {
-            diffuseTerm = Diffuse(lights[i], lights[i].Direction, input.normal, surfaceColor);
-            specTerm = SpecularHighlight(lights[i].Direction, input.normal, input.worldPos);
+            totalLight += DirectionalLight(
+                            lights[i], 
+                            lights[i].Direction, 
+                            input.normal, 
+                            surfaceColor, 
+                            input.worldPos);
         }
         else if (lights[i].Type == LIGHT_TYPE_POINT)
         {
-            // Calculating the vector to the light from the pixel.
-            float3 lightToWorld = normalize(lights[i].Position - input.worldPos);
-            
-            // Calculating the attenuation for the point light.
-            attenuation = Attenuate(lights[i], input.worldPos);
-            
-            // Finally, calculating the diffuse and spec with the attenuation scale.
-            diffuseTerm = Diffuse(lights[i], -lightToWorld, input.normal, surfaceColor) * attenuation;
-            specTerm = SpecularHighlight(lightToWorld, input.normal, input.worldPos) * attenuation;
+            totalLight += PointLight(
+                            lights[i], 
+                            input.worldPos, 
+                            input.normal, 
+                            surfaceColor);
+
         }
-        
-        // combining all aspects of the light and surface.
-        totalLight += diffuseTerm + specTerm * surfaceColor;
+        else if (lights[i].Type == LIGHT_TYPE_SPOT)
+        {
+            totalLight += PointLight(
+                            lights[i],
+                            input.worldPos,
+                            input.normal,
+                            surfaceColor) * 
+                            SpotlightAttenuation(lights[i], input.worldPos);
+        }
     }
     
     return float4(totalLight, 1.0f);

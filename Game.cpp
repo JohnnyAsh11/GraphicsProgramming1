@@ -131,6 +131,7 @@ void Game::Initialize()
 		}
 	}
 
+	// Creating the lights.
 	for (int i = 0; i < 5; i++)
 	{
 		Light currentLight = {};
@@ -159,6 +160,7 @@ void Game::Initialize()
 			currentLight.Direction = DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f);
 			currentLight.Color = DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f);
 		}
+		// Creating a point light.
 		else if (i == 3)
 		{
 			currentLight.Type = LIGHT_TYPE_POINT;
@@ -167,6 +169,18 @@ void Game::Initialize()
 			currentLight.Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
 			currentLight.Position = DirectX::XMFLOAT3(0.25f, -1.0f, 0.0f);
 			currentLight.Range = 4.0f;
+		}
+		// Creating a spot light.
+		else if (i == 4)
+		{
+			currentLight.Type = LIGHT_TYPE_SPOT;
+			currentLight.Intensity = 2.5f;
+			currentLight.Direction = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
+			currentLight.Color = DirectX::XMFLOAT3(1.0f, 0.0f, 1.0f);
+			currentLight.Position = DirectX::XMFLOAT3(2.85f, 0.5f, 0.0f);
+			currentLight.SpotInnerAngle = DirectX::XMConvertToRadians(45.0f);
+			currentLight.SpotOuterAngle = DirectX::XMConvertToRadians(60.0f);
+			currentLight.Range = 2.0f;
 		}
 
 		m_lLights.push_back(currentLight);
@@ -322,6 +336,38 @@ void Game::UpdateImGui(float deltaTime)
 			if (ImGui::Button(sInterface.c_str()))
 			{
 				m_pActiveCamera = m_lCameras[i];
+			}
+		}
+		ImGui::TreePop();
+	}
+	// Creating a sub section for the Lights.
+	if (ImGui::TreeNode("Lights"))
+	{
+		// Looping through the entities in the list.s
+		for (unsigned int i = 0; i < m_lLights.size(); i++)
+		{
+			// Interface naming.
+			std::string sInterface = "Light " + std::to_string(i);
+			sInterface += "##";
+			sInterface += std::to_string(i);
+			
+			if (ImGui::TreeNode(sInterface.c_str()))
+			{
+				Light current = m_lLights[i];
+				ImGui::DragFloat3(
+					("Position##" + std::to_string(i)).c_str(),
+					&current.Position.x,
+					0.05f);
+				ImGui::DragFloat3(
+					("Color##" + std::to_string(i)).c_str(),
+					&current.Color.x,
+					0.05f);
+				ImGui::DragFloat(
+					("Intensity##" + std::to_string(i)).c_str(),
+					&current.Intensity,
+					0.05f);
+				m_lLights[i] = current;
+				ImGui::TreePop();
 			}
 		}
 		ImGui::TreePop();
