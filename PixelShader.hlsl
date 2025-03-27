@@ -1,26 +1,32 @@
+#include "ShaderFunctions.hlsli"
+
 Texture2D SurfaceTexture : register(t0); // 't' register is specifically for textures.
 SamplerState BasicSampler : register(s0); // 's' register is specifically for samplers.
 
-struct VertexToPixel
-{
-	float4 screenPosition : SV_POSITION;
-    float3 normal : NORMAL;
-    float2 uv : TEXCOORD;
-    float worldPos : POSITION;
-};
-
 cbuffer ExternalData : register(b0)
 {
+    // - -
     float4 colorTint;
+    
+    // - -
     float2 scale;
     float2 offset;
+    
+    // - -
     float3 cameraPosition;
+    float roughness;
+    
+    // - -
+    float3 ambient;
 }
 
 float4 main(VertexToPixel input) : SV_TARGET
 {	
-    //input.normal = normalize(input.normal);
+    input.normal = normalize(input.normal);
     float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv * scale + offset);
+    
+    //return float4(input.normal, 1.0f);
+    return float4(surfaceColor * ambient, 1.0f) * colorTint;
     
     //float3 totalLight = float3(0, 0, 0);
     //
@@ -47,5 +53,16 @@ float4 main(VertexToPixel input) : SV_TARGET
     //totalLight += ambientTerm + diffuseTerm + specTerm;
     //return float4(totalLight, 1.0f);
     
-    return float4(surfaceColor, 1.0f) * colorTint;
+    //return float4(surfaceColor, 1.0f) * colorTint;
 }
+
+/*
+
+// step 1, add the tangent v3 to the cbuffer.
+// step 2, calculate tangents function
+
+normal mapping code
+float3 normalFromMap = NormalMap.Sample(BasicSampler, input.uv);
+normalFromMap = normalize(normalFromMap * 2 - 1);
+
+*/

@@ -1,24 +1,20 @@
-struct VertexShaderInput
-{ 
-	float3 localPosition : POSITION;
-	float3 normal : NORMAL;
-	float2 uv : TEXCOORD; 
-};
-
-struct VertexToPixel
-{
-	float4 screenPosition : SV_POSITION;
-    float3 normal : NORMAL;
-    float2 uv : TEXCOORD;
-    float worldPos : POSITION;
-};
+#include "ShaderFunctions.hlsli"
 
 cbuffer ExternalData : register(b0)
 {
-	// RECALL THAT DATA IN THIS COMES IN MULTIPLES OF 16 !!!!
+	// - -
     float4 colorTint;
+	
+	// - -
     matrix world;	
+	
+	// - -
+    matrix worldInvTranspose;
+	
+	// - -
 	matrix view;
+	
+	// - -
 	matrix projection;
 }
 
@@ -29,9 +25,10 @@ VertexToPixel main( VertexShaderInput input )
     
 	matrix wvp = mul(projection, mul(view, world));
 	output.screenPosition = mul(wvp, float4(input.localPosition, 1.0f));
-	output.normal = input.normal;
+    output.normal = mul((float3x3)worldInvTranspose, input.normal);
     output.uv = input.uv;
     output.worldPos = normalize(mul(world, float4(input.localPosition, 1.0f)).xyz);
+	// mul(world, float4(input.localPosition, 1.0f)).xyz
 	
 	return output;
 }

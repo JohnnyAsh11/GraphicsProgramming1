@@ -30,6 +30,7 @@ void Entity::Draw(std::shared_ptr<Camera> a_pCamera, float a_fTotalTime)
 	// Vertex shader data setting.
 	std::shared_ptr<SimpleVertexShader> vs = m_pMaterial->GetVertexShader();
 	vs->SetMatrix4x4("world", m_tTransform.GetWorldMatrix());	// The world matrix of the entity.
+	vs->SetMatrix4x4("worldInvTranspose", m_tTransform.GetWorldInverseTransposeMatrix());	
 	vs->SetMatrix4x4("view", a_pCamera->GetView());				// The view matrix of the entity.
 	vs->SetMatrix4x4("projection", a_pCamera->GetProjection());	// The projection matrix of the entity.
 	vs->CopyAllBufferData();
@@ -39,6 +40,7 @@ void Entity::Draw(std::shared_ptr<Camera> a_pCamera, float a_fTotalTime)
 	ps->SetFloat4("colorTint", m_pMaterial->GetColor());		// The color tint of the entity.
 	ps->SetFloat("totalTime", a_fTotalTime);					// The total time that has elapsed in the program.
 	ps->SetFloat3("cameraPosition", a_pCamera.get()->GetTransform().GetPosition());
+	ps->SetFloat("roughness", m_pMaterial->GetRoughness());
 
 	// TODO: make the scale and offset both fields of the Material.
 	ps->SetFloat2("scale", DirectX::XMFLOAT2(2.0f, 1.0f));		// The scale of the texture in the shader. 

@@ -11,6 +11,7 @@ private:
 	std::shared_ptr<SimpleVertexShader> m_pVertexShader;
 	std::shared_ptr<SimplePixelShader> m_pPixelShader;
 	DirectX::XMFLOAT4 m_v4ColorTint;
+	float m_fRoughness;
 
 	// Texture/sampler hash tables.
 	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> m_mTextureSRVs;
@@ -23,10 +24,12 @@ public:
 	/// <param name="a_pVertexShader">The vertex shader for objects in the world.</param>
 	/// <param name="a_pPixelShader">The pixel shader for objects in the world.</param>
 	/// <param name="a_v4ColorTint">The color tint for objects in the world.</param>
+	/// <param name="a_fRoughness">0.0f to 1.0f value, 1.0f is matte while 0.0f is mirror-like.</param>
 	Material(
 		std::shared_ptr<SimpleVertexShader> a_pVertexShader, 
 		std::shared_ptr<SimplePixelShader> a_pPixelShader,
-		DirectX::XMFLOAT4 a_v4ColorTint);
+		DirectX::XMFLOAT4 a_v4ColorTint,
+		float a_fRoughness);
 
 	/// <summary>
 	/// Destructor for the Material class.
@@ -55,6 +58,10 @@ public:
 	/// Gets the color tint of the material.
 	/// </summary>
 	DirectX::XMFLOAT4 GetColor();
+	/// <summary>
+	/// Gets the roughness of the material.
+	/// </summary>
+	float GetRoughness();
 
 	/// <summary>
 	/// Gets the unordered_map of textures for use outside of the material.

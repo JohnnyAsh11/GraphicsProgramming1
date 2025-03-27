@@ -1,12 +1,17 @@
 #include "Material.h"
 
-Material::Material(std::shared_ptr<SimpleVertexShader> a_pVertexShader, std::shared_ptr<SimplePixelShader> a_pPixelShader, DirectX::XMFLOAT4 a_v4ColorTint)
+Material::Material(
+	std::shared_ptr<SimpleVertexShader> a_pVertexShader,
+	std::shared_ptr<SimplePixelShader> a_pPixelShader, 
+	DirectX::XMFLOAT4 a_v4ColorTint,
+	float a_fRoughness)
 {
 	m_pVertexShader = a_pVertexShader;
 	m_pPixelShader = a_pPixelShader;
 	m_v4ColorTint = a_v4ColorTint;
 	m_mTextureSRVs = std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>>();
 	m_mSamplers = std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11SamplerState>>();
+	m_fRoughness = a_fRoughness;
 }
 
 Material::~Material()
@@ -23,6 +28,7 @@ Material::Material(const Material& a_pOther)
 	m_v4ColorTint = a_pOther.m_v4ColorTint;
 	m_mTextureSRVs = a_pOther.m_mTextureSRVs;
 	m_mSamplers = a_pOther.m_mSamplers;
+	m_fRoughness = a_pOther.m_fRoughness;
 }
 
 Material& Material::operator=(const Material& a_pOther)
@@ -44,6 +50,7 @@ Material& Material::operator=(const Material& a_pOther)
 std::shared_ptr<SimpleVertexShader> Material::GetVertexShader() { return m_pVertexShader; }
 std::shared_ptr<SimplePixelShader> Material::GetPixelShader() { return m_pPixelShader; }
 DirectX::XMFLOAT4 Material::GetColor() { return m_v4ColorTint; }
+float Material::GetRoughness() { return m_fRoughness; }
 
 std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> Material::GetTextures()
 { return m_mTextureSRVs; }
