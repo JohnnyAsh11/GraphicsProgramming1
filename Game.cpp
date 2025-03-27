@@ -69,7 +69,7 @@ void Game::Initialize()
 
 	// Creating the materials.
 	std::shared_ptr<Material> matMossyBrick = 
-		std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 1.0f));
+		std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.9f));
 	std::shared_ptr<Material> matRockyEarth = 
 		std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.0f));
 
@@ -129,6 +129,47 @@ void Game::Initialize()
 				m_lEntities[index].SetMaterial(matRockyEarth);
 			}
 		}
+	}
+
+	for (int i = 0; i < 5; i++)
+	{
+		Light currentLight = {};
+
+		// Red light coming from the left.
+		if (i == 0)
+		{
+			currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
+			currentLight.Intensity = 1.0f;
+			currentLight.Direction = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
+			currentLight.Color = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
+		}
+		// Green light coming from above.
+		else if (i == 1)
+		{
+			currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
+			currentLight.Intensity = 1.0f;
+			currentLight.Direction = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f);
+			currentLight.Color = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
+		}
+		// Blue light coming from the right.
+		else if (i == 2)
+		{
+			currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
+			currentLight.Intensity = 1.0f;
+			currentLight.Direction = DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f);
+			currentLight.Color = DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f);
+		}
+		else if (i == 3)
+		{
+			currentLight.Type = LIGHT_TYPE_POINT;
+			currentLight.Intensity = 5.0f;
+			currentLight.Direction = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
+			currentLight.Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
+			currentLight.Position = DirectX::XMFLOAT3(0.25f, -1.0f, 0.0f);
+			currentLight.Range = 4.0f;
+		}
+
+		m_lLights.push_back(currentLight);
 	}
 
 	// Initialize ImGui itself & platform/renderer backends
@@ -302,7 +343,11 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Rendering the entities.
 	for (unsigned int i = 0; i < m_lEntities.size(); i++)
 	{
+		// Setting the ambient light.
 		m_lEntities[i].GetMaterial()->GetPixelShader()->SetFloat3("ambient", m_v3AmbientColor);
+
+		// Passing in light data.
+		m_lEntities[i].GetMaterial()->GetPixelShader()->SetData("lights", &m_lLights[0], sizeof(Light) * (int)m_lLights.size());
 		m_lEntities[i].Draw(m_pActiveCamera, totalTime);
 	}
 

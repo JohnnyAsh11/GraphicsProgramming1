@@ -27,8 +27,7 @@ VertexToPixel main( VertexShaderInput input )
 	output.screenPosition = mul(wvp, float4(input.localPosition, 1.0f));
     output.normal = mul((float3x3)worldInvTranspose, input.normal);
     output.uv = input.uv;
-    output.worldPos = normalize(mul(world, float4(input.localPosition, 1.0f)).xyz);
-	// mul(world, float4(input.localPosition, 1.0f)).xyz
+    output.worldPos = mul(world, float4(input.localPosition, 1.0f)).xyz;
 	
 	return output;
 }
