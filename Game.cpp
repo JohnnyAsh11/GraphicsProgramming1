@@ -71,7 +71,7 @@ void Game::Initialize()
 	std::shared_ptr<Material> matMossyBrick = 
 		std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.9f));
 	std::shared_ptr<Material> matRockyEarth = 
-		std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.0f));
+		std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.1f));
 
 	// Providing the materials with their respective textures.
 	matRockyEarth->AddSampler("BasicSampler", pSampler);

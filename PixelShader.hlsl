@@ -37,7 +37,8 @@ float3 Diffuse(
 float3 SpecularHighlight(
     float3 a_v3Direction,
     float3 a_v3Normal, 
-    float3 a_v3WorldPos)
+    float3 a_v3WorldPos,
+    float a_fIntensity)
 {
     // Calculating the relfection and view vectors.
     float3 R = reflect(a_v3Direction, a_v3Normal);
@@ -50,7 +51,7 @@ float3 SpecularHighlight(
     float spec = 0.0f;
     if (specPower > 0.05f)
     {
-        spec = pow(max(dot(R, V), 0.0f), specPower);
+        spec = pow(max(dot(R, V), 0.0f), specPower) * a_fIntensity;
     }
     
     return spec;
@@ -90,7 +91,7 @@ float3 DirectionalLight(
     float3 a_v3WorldPos)
 {
     return Diffuse(a_lCurrentLight, a_v3Direction, a_v3Normal, a_v3SurfaceColor) + 
-           SpecularHighlight(a_lCurrentLight.Direction, a_v3Normal, a_v3WorldPos) *
+           SpecularHighlight(a_lCurrentLight.Direction, a_v3Normal, a_v3WorldPos, a_lCurrentLight.Intensity) *
            a_v3SurfaceColor;
 }
 
@@ -108,7 +109,7 @@ float3 PointLight(
             
     // Finally, calculating the diffuse and spec with the attenuation scale.
     float3 diffuseTerm = Diffuse(a_lCurrentLight, -lightToWorld, a_v3Normal, a_v3SurfaceColor) * attenuation;
-    float3 specTerm = SpecularHighlight(lightToWorld, a_v3Normal, a_v3WorldPos) * attenuation;
+    float3 specTerm = SpecularHighlight(lightToWorld, a_v3Normal, a_v3WorldPos, a_lCurrentLight.Intensity) * attenuation;
     
     return diffuseTerm + specTerm;
 }
@@ -119,7 +120,7 @@ float4 main(VertexToPixel input) : SV_TARGET
     float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv * scale + offset).xyz;
     
     // Looping through all lights and calculating their effects.
-    float3 totalLight = ambient;    
+    float3 totalLight = ambient * surfaceColor;    
     for (int i = 0; i < MAX_LIGHT_COUNT; i++)
     {
         if (lights[i].Type == LIGHT_TYPE_DIRECTIONAL)
