@@ -1,8 +1,9 @@
 #include "ShaderFunctions.hlsli"
 #define MAX_LIGHT_COUNT 5
 
-Texture2D SurfaceTexture : register(t0); // 't' register is specifically for textures.
-SamplerState BasicSampler : register(s0); // 's' register is specifically for samplers.
+Texture2D SurfaceTexture : register(t0);    // 't' register is specifically for textures.
+Texture2D NormalMap : register(t1);
+SamplerState BasicSampler : register(s0);   // 's' register is specifically for samplers.
 
 cbuffer ExternalData : register(b0)
 {
@@ -119,8 +120,18 @@ float4 main(VertexToPixel input) : SV_TARGET
     input.normal = normalize(input.normal);
     float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv * scale + offset).xyz;
     
+    float3 unpackedNormal = NormalMap.Sample(BasicSampler, input.uv).rgb * 2 - 1;
+    unpackedNormal = normalize(unpackedNormal);
+    
+    float3 N = normalize(input.normal);
+    float3 T = normalize(input.tangent);
+    T = normalize(T - N * dot(T, N));
+    float3 B = cross(T, N);
+    float3x3 TBN = float3x3(T, B, N);
+    input.normal = mul(unpackedNormal, TBN);
+    
     // Looping through all lights and calculating their effects.
-    float3 totalLight = ambient * surfaceColor;    
+    float3 totalLight = ambient * surfaceColor;
     for (int i = 0; i < MAX_LIGHT_COUNT; i++)
     {
         if (lights[i].Type == LIGHT_TYPE_DIRECTIONAL)
@@ -139,7 +150,6 @@ float4 main(VertexToPixel input) : SV_TARGET
                             input.worldPos, 
                             input.normal, 
                             surfaceColor);
-
         }
         else if (lights[i].Type == LIGHT_TYPE_SPOT)
         {

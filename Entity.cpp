@@ -43,8 +43,8 @@ void Entity::Draw(std::shared_ptr<Camera> a_pCamera, float a_fTotalTime)
 	ps->SetFloat("roughness", m_pMaterial->GetRoughness());
 
 	// TODO: make the scale and offset both fields of the Material.
-	ps->SetFloat2("scale", DirectX::XMFLOAT2(2.0f, 1.0f));		// The scale of the texture in the shader. 
-	ps->SetFloat2("offset", DirectX::XMFLOAT2(0.0f, 0.0f));		// The offset of the texture in the shader.
+	ps->SetFloat2("scale", m_pMaterial->GetScale());		// The scale of the texture in the shader. 
+	ps->SetFloat2("offset", m_pMaterial->GetOffset());		// The offset of the texture in the shader.
 	ps->CopyAllBufferData();
 
 	// Rendering the mesh to the window.

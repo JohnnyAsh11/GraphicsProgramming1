@@ -84,6 +84,13 @@ public:
 	/// Sets the buffers and draws with the proper amount of indices.
 	/// </summary>
 	void Draw(void);
+
+private:
+	void CalculateTangents(
+		Vertex* a_lVertices, 
+		int a_dVertexCount,
+		unsigned int* a_lIndices, 
+		int a_dIndexCount);
 };
 
 #endif //__MESH_H_

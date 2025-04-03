@@ -33,21 +33,36 @@ void Game::Initialize()
 	m_pActiveCamera = m_lCameras[0];
 
 	// Loading in the textures:
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pMossyBrickTexture;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pRockyTerrainTexture;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pCobblestoneTexture;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pCobblestoneNormalMap;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pCushionTexture;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pCushionNormalMap;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> pSampler;
 	CreateWICTextureFromFile(
 		Graphics::Device.Get(),
 		Graphics::Context.Get(),
-		L"Textures/mossy_brick.png",
+		L"Textures/cobblestone.png",
 		nullptr,
-		&pMossyBrickTexture);
+		&pCobblestoneTexture);
 	CreateWICTextureFromFile(
 		Graphics::Device.Get(),
 		Graphics::Context.Get(),
-		L"Textures/rocky_terrain.png",
+		L"Textures/cushion.png",
 		nullptr,
-		&pRockyTerrainTexture);
+		&pCushionTexture);
+
+	CreateWICTextureFromFile(
+		Graphics::Device.Get(),
+		Graphics::Context.Get(),
+		L"Textures/cobblestone_normals.png",
+		nullptr,
+		&pCobblestoneNormalMap);
+	CreateWICTextureFromFile(
+		Graphics::Device.Get(),
+		Graphics::Context.Get(),
+		L"Textures/cushion_normals.png",
+		nullptr,
+		&pCushionNormalMap);
 
 	// Creating the SampleState.
 	D3D11_SAMPLER_DESC sampleDesc;
@@ -68,17 +83,21 @@ void Game::Initialize()
 		Graphics::Device, Graphics::Context, FixPath(L"PixelShader.cso").c_str());
 
 	// Creating the materials.
-	std::shared_ptr<Material> matMossyBrick = 
+	std::shared_ptr<Material> matCobblestone = 
 		std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.9f));
-	std::shared_ptr<Material> matRockyEarth = 
-		std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.1f));
+	std::shared_ptr<Material> matCushion = 
+		std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.0f));
 
 	// Providing the materials with their respective textures.
-	matRockyEarth->AddSampler("BasicSampler", pSampler);
-	matRockyEarth->AddTexturesSRV("SurfaceTexture", pRockyTerrainTexture);
+	matCushion->AddSampler("BasicSampler", pSampler);
+	matCushion->AddTexturesSRV("SurfaceTexture", pCushionTexture);
+	matCushion->AddTexturesSRV("NormalMap", pCushionNormalMap);
+	matCushion->SetScale(DirectX::XMFLOAT2(3.0f, 3.0f));
 
-	matMossyBrick->AddSampler("BasicSampler", pSampler);
-	matMossyBrick->AddTexturesSRV("SurfaceTexture", pMossyBrickTexture);
+	matCobblestone->AddSampler("BasicSampler", pSampler);
+	matCobblestone->AddTexturesSRV("SurfaceTexture", pCobblestoneTexture);
+	matCobblestone->AddTexturesSRV("NormalMap", pCobblestoneNormalMap);
+	matCobblestone->SetScale(DirectX::XMFLOAT2(1.0f, 1.0f));
 
 	// Creating the 3D models.
 	std::shared_ptr<Mesh> cube = std::make_shared<Mesh>(Mesh("Models/cube.graphics_obj"));
@@ -95,13 +114,13 @@ void Game::Initialize()
 	// Instantiating the Entities.
 	for (int i = 0; i < dAmountOfSets; i++)
 	{
-		m_lEntities.push_back(Entity(cube, matMossyBrick));
-		m_lEntities.push_back(Entity(cylinder, matMossyBrick));
-		m_lEntities.push_back(Entity(sphere, matMossyBrick));
-		m_lEntities.push_back(Entity(helix, matMossyBrick));
-		m_lEntities.push_back(Entity(torus, matMossyBrick));
-		m_lEntities.push_back(Entity(quadDoubleSided, matMossyBrick));
-		m_lEntities.push_back(Entity(quad, matMossyBrick));
+		m_lEntities.push_back(Entity(cube, matCobblestone));
+		m_lEntities.push_back(Entity(cylinder, matCobblestone));
+		m_lEntities.push_back(Entity(sphere, matCobblestone));
+		m_lEntities.push_back(Entity(helix, matCobblestone));
+		m_lEntities.push_back(Entity(torus, matCobblestone));
+		m_lEntities.push_back(Entity(quadDoubleSided, matCobblestone));
+		m_lEntities.push_back(Entity(quad, matCobblestone));
 	}
 
 	for (int j = 0; j < dAmountOfSets; j++)
@@ -122,11 +141,11 @@ void Game::Initialize()
 			// Setting the proper materials.
 			if (j == 0)
 			{
-				m_lEntities[index].SetMaterial(matMossyBrick);
+				m_lEntities[index].SetMaterial(matCobblestone);
 			}
 			else if (j == 1)
 			{
-				m_lEntities[index].SetMaterial(matRockyEarth);
+				m_lEntities[index].SetMaterial(matCushion);
 			}
 		}
 	}
@@ -140,7 +159,7 @@ void Game::Initialize()
 		if (i == 0)
 		{
 			currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
-			currentLight.Intensity = 1.0f;
+			currentLight.Intensity = 0.6f;
 			currentLight.Direction = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
 			currentLight.Color = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
 		}
@@ -148,7 +167,7 @@ void Game::Initialize()
 		else if (i == 1)
 		{
 			currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
-			currentLight.Intensity = 1.0f;
+			currentLight.Intensity = 0.6f;
 			currentLight.Direction = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f);
 			currentLight.Color = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
 		}
@@ -156,7 +175,7 @@ void Game::Initialize()
 		else if (i == 2)
 		{
 			currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
-			currentLight.Intensity = 1.0f;
+			currentLight.Intensity = 0.6f;
 			currentLight.Direction = DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f);
 			currentLight.Color = DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f);
 		}
@@ -164,7 +183,7 @@ void Game::Initialize()
 		else if (i == 3)
 		{
 			currentLight.Type = LIGHT_TYPE_POINT;
-			currentLight.Intensity = 5.0f;
+			currentLight.Intensity = 2.0f;
 			currentLight.Direction = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
 			currentLight.Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
 			currentLight.Position = DirectX::XMFLOAT3(0.25f, -1.0f, 0.0f);
@@ -227,7 +246,7 @@ void Game::Update(float deltaTime, float totalTime)
 	// Making the meshes slowly rotate.
 	for (unsigned int i = 0; i < m_lEntities.size(); i++)
 	{
-		m_lEntities[i].GetTransform().Rotate(XMFLOAT3(0.0f, deltaTime / 2, 0.0f));
+		m_lEntities[i].GetTransform().Rotate(XMFLOAT3(0.0f, deltaTime / 4, 0.0f));
 	}
 
 	// Example input checking: Quit if the escape key is pressed

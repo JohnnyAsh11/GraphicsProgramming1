@@ -12,6 +12,8 @@ private:
 	std::shared_ptr<SimplePixelShader> m_pPixelShader;
 	DirectX::XMFLOAT4 m_v4ColorTint;
 	float m_fRoughness;
+	DirectX::XMFLOAT2 m_fScale = DirectX::XMFLOAT2(1.0f, 1.0f);
+	DirectX::XMFLOAT2 m_fOffset = DirectX::XMFLOAT2(0.0f, 0.0f);
 
 	// Texture/sampler hash tables.
 	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> m_mTextureSRVs;
@@ -62,6 +64,26 @@ public:
 	/// Gets the roughness of the material.
 	/// </summary>
 	float GetRoughness();
+
+	/// <summary>
+	/// Gets the scale of the material's textures.
+	/// </summary>
+	DirectX::XMFLOAT2 GetScale();
+
+	/// <summary>
+	/// Gets the offset of the material's textures.
+	/// </summary>
+	DirectX::XMFLOAT2 GetOffset();
+
+	/// <summary>
+	/// Sets the scale field of the material.
+	/// </summary>
+	void SetScale(DirectX::XMFLOAT2 a_fScale);
+
+	/// <summary>
+	/// Sets the offset field of the material.
+	/// </summary>
+	void SetOffset(DirectX::XMFLOAT2 a_fOffset);
 
 	/// <summary>
 	/// Gets the unordered_map of textures for use outside of the material.

@@ -29,6 +29,8 @@ Material::Material(const Material& a_pOther)
 	m_mTextureSRVs = a_pOther.m_mTextureSRVs;
 	m_mSamplers = a_pOther.m_mSamplers;
 	m_fRoughness = a_pOther.m_fRoughness;
+	m_fScale = a_pOther.m_fScale;
+	m_fOffset = a_pOther.m_fOffset;
 }
 
 Material& Material::operator=(const Material& a_pOther)
@@ -43,6 +45,8 @@ Material& Material::operator=(const Material& a_pOther)
 	m_v4ColorTint = a_pOther.m_v4ColorTint;
 	m_mTextureSRVs = a_pOther.m_mTextureSRVs;
 	m_mSamplers = a_pOther.m_mSamplers;
+	m_fScale = a_pOther.m_fScale;
+	m_fOffset = a_pOther.m_fOffset;
 
 	return *this;
 }
@@ -51,6 +55,26 @@ std::shared_ptr<SimpleVertexShader> Material::GetVertexShader() { return m_pVert
 std::shared_ptr<SimplePixelShader> Material::GetPixelShader() { return m_pPixelShader; }
 DirectX::XMFLOAT4 Material::GetColor() { return m_v4ColorTint; }
 float Material::GetRoughness() { return m_fRoughness; }
+
+DirectX::XMFLOAT2 Material::GetScale()
+{
+	return m_fScale;
+}
+
+DirectX::XMFLOAT2 Material::GetOffset()
+{
+	return m_fOffset;
+}
+
+void Material::SetScale(DirectX::XMFLOAT2 a_fScale)
+{
+	m_fScale = a_fScale;
+}
+
+void Material::SetOffset(DirectX::XMFLOAT2 a_fOffset)
+{
+	m_fOffset = a_fOffset;
+}
 
 std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> Material::GetTextures()
 { return m_mTextureSRVs; }
