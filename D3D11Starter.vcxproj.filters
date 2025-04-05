@@ -78,6 +78,9 @@
     <ClCompile Include="SimpleShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Sky.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window.h">
@@ -146,6 +149,12 @@
     <ClInclude Include="Example.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Lights.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sky.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl">
@@ -165,6 +174,12 @@
     </FxCompile>
     <FxCompile Include="VoronoiPS.hlsl">
       <Filter>UnusedShaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyVertex.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyPixel.hlsl">
+      <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
