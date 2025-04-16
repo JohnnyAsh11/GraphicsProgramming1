@@ -181,6 +181,9 @@
     <FxCompile Include="SkyPixel.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="PBRPixelShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ImGui\LICENSE.txt" />
@@ -188,6 +191,12 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="ShaderFunctions.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="PBRFunctions.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="GeneralLightingFunctions.hlsli">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
