@@ -118,7 +118,7 @@ float3 PointLight(
 float4 main(VertexToPixel input) : SV_TARGET
 {	
     input.normal = normalize(input.normal);
-    float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv * scale + offset).xyz;
+    float3 surfaceColor = pow(SurfaceTexture.Sample(BasicSampler, input.uv * scale + offset).xyz, 2.2f);
     
     float3 unpackedNormal = NormalMap.Sample(BasicSampler, input.uv * scale + offset).rgb * 2 - 1;
     unpackedNormal = normalize(unpackedNormal);
@@ -162,5 +162,6 @@ float4 main(VertexToPixel input) : SV_TARGET
         }
     }
     
-    return float4(totalLight, 1.0f);
+    // Multiply by 2 for the gamma correction.
+    return float4(pow(totalLight, 1.0f / 2.2f), 1.0f);
 }
