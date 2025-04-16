@@ -35,8 +35,8 @@ void Game::Initialize()
 	// Loading in the textures:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pCobblestoneTexture;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pCobblestoneNormalMap;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pCushionTexture;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pCushionNormalMap;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pRocksTexture;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pRocksNormalMap;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> pSampler;
 	CreateWICTextureFromFile(
 		Graphics::Device.Get(),
@@ -47,9 +47,9 @@ void Game::Initialize()
 	CreateWICTextureFromFile(
 		Graphics::Device.Get(),
 		Graphics::Context.Get(),
-		L"Textures/cushion.png",
+		L"Textures/rock.png",
 		nullptr,
-		&pCushionTexture);
+		&pRocksTexture);
 
 	CreateWICTextureFromFile(
 		Graphics::Device.Get(),
@@ -60,9 +60,9 @@ void Game::Initialize()
 	CreateWICTextureFromFile(
 		Graphics::Device.Get(),
 		Graphics::Context.Get(),
-		L"Textures/cushion_normals.png",
+		L"Textures/rock_normals.png",
 		nullptr,
-		&pCushionNormalMap);
+		&pRocksNormalMap);
 
 	// Creating the SampleState.
 	D3D11_SAMPLER_DESC sampleDesc;
@@ -85,14 +85,14 @@ void Game::Initialize()
 	// Creating the materials.
 	std::shared_ptr<Material> matCobblestone = 
 		std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.9f));
-	std::shared_ptr<Material> matCushion = 
+	std::shared_ptr<Material> matRock = 
 		std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.0f));
 
 	// Providing the materials with their respective textures.
-	matCushion->AddSampler("BasicSampler", pSampler);
-	matCushion->AddTexturesSRV("SurfaceTexture", pCushionTexture);
-	matCushion->AddTexturesSRV("NormalMap", pCushionNormalMap);
-	matCushion->SetScale(DirectX::XMFLOAT2(3.0f, 3.0f));
+	matRock->AddSampler("BasicSampler", pSampler);
+	matRock->AddTexturesSRV("SurfaceTexture", pRocksTexture);
+	matRock->AddTexturesSRV("NormalMap", pRocksNormalMap);
+	matRock->SetScale(DirectX::XMFLOAT2(2.0f, 2.0f));
 
 	matCobblestone->AddSampler("BasicSampler", pSampler);
 	matCobblestone->AddTexturesSRV("SurfaceTexture", pCobblestoneTexture);
@@ -145,7 +145,7 @@ void Game::Initialize()
 			}
 			else if (j == 1)
 			{
-				m_lEntities[index].SetMaterial(matCushion);
+				m_lEntities[index].SetMaterial(matRock);
 			}
 		}
 	}

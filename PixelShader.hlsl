@@ -120,7 +120,7 @@ float4 main(VertexToPixel input) : SV_TARGET
     input.normal = normalize(input.normal);
     float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv * scale + offset).xyz;
     
-    float3 unpackedNormal = NormalMap.Sample(BasicSampler, input.uv).rgb * 2 - 1;
+    float3 unpackedNormal = NormalMap.Sample(BasicSampler, input.uv * scale + offset).rgb * 2 - 1;
     unpackedNormal = normalize(unpackedNormal);
     
     float3 N = normalize(input.normal);
