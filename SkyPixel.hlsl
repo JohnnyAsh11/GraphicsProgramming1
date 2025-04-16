@@ -1,6 +1,6 @@
 #include "ShaderFunctions.hlsli"
 
-Texture2D SurfaceTexture : register(t0);
+TextureCube SurfaceTexture : register(t0);
 SamplerState BasicSampler : register(s0);
 
 struct VertexToPixel_Sky
@@ -11,5 +11,5 @@ struct VertexToPixel_Sky
 
 float4 main(VertexToPixel_Sky input) : SV_TARGET
 {
-    return SurfaceTexture.Sample(BasicSampler, input.sampleDir.xy);
+    return SurfaceTexture.Sample(BasicSampler, input.sampleDir);
 }

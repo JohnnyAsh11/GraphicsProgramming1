@@ -9,6 +9,7 @@
 #include "Camera.h"
 #include "SimpleShader.h"
 #include "Lights.h"
+#include "Sky.h"
 
 class Game
 {
@@ -25,6 +26,8 @@ private:
 	std::vector<Light> m_lLights;
 
 	std::vector<Entity> m_lEntities;
+
+	Sky* m_pSkyBox;
 
 public:
 	// Basic OOP setup

@@ -205,6 +205,17 @@ void Game::Initialize()
 		m_lLights.push_back(currentLight);
 	}
 
+	// Loading in the sky box.
+	m_pSkyBox = new Sky(cube, pSampler);
+	m_pSkyBox->CreateCubemap(
+		L"Textures/Skies/right.png",
+		L"Textures/Skies/left.png",
+		L"Textures/Skies/up.png",
+		L"Textures/Skies/down.png",
+		L"Textures/Skies/front.png",
+		L"Textures/Skies/back.png"
+	);
+
 	// Initialize ImGui itself & platform/renderer backends
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -219,6 +230,8 @@ void Game::Initialize()
 
 Game::~Game()
 {
+	delete m_pSkyBox;
+
 	// ImGui clean up
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
@@ -415,6 +428,9 @@ void Game::Draw(float deltaTime, float totalTime)
 		m_lEntities[i].GetMaterial()->GetPixelShader()->SetData("lights", &m_lLights[0], sizeof(Light) * (int)m_lLights.size());
 		m_lEntities[i].Draw(m_pActiveCamera, totalTime);
 	}
+
+	// Rendering the sky box.
+	m_pSkyBox->Draw(m_pActiveCamera);
 
 	// Rendering ImGui
 	ImGui::Render();
