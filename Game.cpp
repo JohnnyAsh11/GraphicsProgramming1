@@ -4,21 +4,19 @@
 #include "Input.h"
 #include "PathHelpers.h"
 #include "Window.h"
-
-#include "Colors.h"
-#include <vector>
-
-// Needed for a helper function to load pre-compiled shader files
-#pragma comment(lib, "d3dcompiler.lib")
-#include <d3dcompiler.h>
-
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_dx11.h"
 #include "ImGui/imgui_impl_win32.h"
 
-#include "Material.h"
+#include <vector>
+#include <WICTextureLoader.h>
+// Needed for a helper function to load pre-compiled shader files
+#pragma comment(lib, "d3dcompiler.lib")
+#include <d3dcompiler.h>
 
-#include "WICTextureLoader.h"
+#include "Material.h"
+#include "Colors.h"
+#include "Texture.h"
 
 // For the DirectX Math library
 using namespace DirectX;
@@ -32,39 +30,16 @@ void Game::Initialize()
 	m_lCameras.push_back(std::shared_ptr<Camera>(new Camera(Window::AspectRatio(), XMFLOAT3(0.0f, 0.0f, -5.0f), 60.0f)));
 	m_pActiveCamera = m_lCameras[0];
 
-	// Loading in the textures:
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pCobblestoneTexture;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pCobblestoneNormalMap;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pRocksTexture;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pRocksNormalMap;
-	Microsoft::WRL::ComPtr<ID3D11SamplerState> pSampler;
-	CreateWICTextureFromFile(
-		Graphics::Device.Get(),
-		Graphics::Context.Get(),
-		L"Textures/cobblestone.png",
-		nullptr,
-		&pCobblestoneTexture);
-	CreateWICTextureFromFile(
-		Graphics::Device.Get(),
-		Graphics::Context.Get(),
-		L"Textures/rock.png",
-		nullptr,
-		&pRocksTexture);
-
-	CreateWICTextureFromFile(
-		Graphics::Device.Get(),
-		Graphics::Context.Get(),
-		L"Textures/cobblestone_normals.png",
-		nullptr,
-		&pCobblestoneNormalMap);
-	CreateWICTextureFromFile(
-		Graphics::Device.Get(),
-		Graphics::Context.Get(),
-		L"Textures/rock_normals.png",
-		nullptr,
-		&pRocksNormalMap);
+	// Loading in the main shaders that the program will be using.
+	std::shared_ptr<SimpleVertexShader> pBasicVS = std::make_shared<SimpleVertexShader>(
+		Graphics::Device, Graphics::Context, FixPath(L"VertexShader.cso").c_str());
+	std::shared_ptr<SimplePixelShader> pBasicPS = std::make_shared<SimplePixelShader>(
+		Graphics::Device, Graphics::Context, FixPath(L"PixelShader.cso").c_str());
+	std::shared_ptr<SimplePixelShader> pPBRPixelShader = std::make_shared<SimplePixelShader>(
+		Graphics::Device, Graphics::Context, FixPath(L"PBRPixelShader.cso").c_str());
 
 	// Creating the SampleState.
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> pSampler;
 	D3D11_SAMPLER_DESC sampleDesc;
 	sampleDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampleDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -77,29 +52,118 @@ void Game::Initialize()
 	sampleDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 	Graphics::Device.Get()->CreateSamplerState(&sampleDesc, &pSampler);
 
-	std::shared_ptr<SimpleVertexShader> pBasicVS = std::make_shared<SimpleVertexShader>(
-		Graphics::Device, Graphics::Context, FixPath(L"VertexShader.cso").c_str());
-	std::shared_ptr<SimplePixelShader> pBasicPS = std::make_shared<SimplePixelShader>(
-		Graphics::Device, Graphics::Context, FixPath(L"PixelShader.cso").c_str());
+	#pragma region Loading textures and setting materials.
+	// Loading in the textures:
+	TextureSet cobblestone = {};
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/cobblestone_albedo.png", nullptr, &cobblestone.Albedo);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/cobblestone_normals.png", nullptr,	&cobblestone.Normal);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/cobblestone_metal.png", nullptr, &cobblestone.Metal);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/cobblestone_roughness.png", nullptr, &cobblestone.Roughness);
+
+	TextureSet bronze = {};
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/bronze_albedo.png", nullptr, &bronze.Albedo);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/bronze_normals.png", nullptr, &bronze.Normal);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/bronze_metal.png", nullptr, &bronze.Metal);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/bronze_roughness.png", nullptr, &bronze.Roughness);
+
+	TextureSet scratch = {};
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/scratched_albedo.png", nullptr, &scratch.Albedo);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/scratched_normals.png", nullptr, &scratch.Normal);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/scratched_metal.png", nullptr, &scratch.Metal);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/scratched_roughness.png", nullptr, &scratch.Roughness);
+
+	TextureSet rust = {};
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/rust_albedo.png", nullptr, &rust.Albedo);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/rust_normals.png", nullptr, &rust.Normal);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/rust_metal.png", nullptr, &rust.Metal);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/rust_roughness.png", nullptr, &rust.Roughness);
+
+	TextureSet wood = {};
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/wood_albedo.png", nullptr, &wood.Albedo);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/wood_normals.png", nullptr, &wood.Normal);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/wood_metal.png", nullptr, &wood.Metal);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/wood_roughness.png", nullptr, &wood.Roughness);
+
+	TextureSet floor = {};
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/floor_albedo.png", nullptr, &floor.Albedo);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/floor_normals.png", nullptr, &floor.Normal);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/floor_metal.png", nullptr, &floor.Metal);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/floor_roughness.png", nullptr, &floor.Roughness);
+
+	TextureSet rough = {};
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/rough_albedo.png", nullptr, &rough.Albedo);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/rough_normals.png", nullptr, &rough.Normal);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/rough_metal.png", nullptr, &rough.Metal);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/rough_roughness.png", nullptr, &rough.Roughness);
 
 	// Creating the materials.
 	std::shared_ptr<Material> matCobblestone = 
-		std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.9f));
-	std::shared_ptr<Material> matRock = 
-		std::make_shared<Material>(Material(pBasicVS, pBasicPS, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.0f));
+		std::make_shared<Material>(Material(pBasicVS, pPBRPixelShader, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.0f));
+	std::shared_ptr<Material> matBronze = 
+		std::make_shared<Material>(Material(pBasicVS, pPBRPixelShader, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.0f));
+	std::shared_ptr<Material> matScratch = 
+		std::make_shared<Material>(Material(pBasicVS, pPBRPixelShader, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.0f));
+	std::shared_ptr<Material> matRust = 
+		std::make_shared<Material>(Material(pBasicVS, pPBRPixelShader, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.0f));
+	std::shared_ptr<Material> matWood = 
+		std::make_shared<Material>(Material(pBasicVS, pPBRPixelShader, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.0f));
+	std::shared_ptr<Material> matFloor = 
+		std::make_shared<Material>(Material(pBasicVS, pPBRPixelShader, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.0f));
+	std::shared_ptr<Material> matRough = 
+		std::make_shared<Material>(Material(pBasicVS, pPBRPixelShader, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.0f));
 
 	// Providing the materials with their respective textures.
-	matRock->AddSampler("BasicSampler", pSampler);
-	matRock->AddTexturesSRV("SurfaceTexture", pRocksTexture);
-	matRock->AddTexturesSRV("NormalMap", pRocksNormalMap);
-	matRock->SetScale(DirectX::XMFLOAT2(2.0f, 2.0f));
+	matBronze->AddSampler("BasicSampler", pSampler);
+	matBronze->AddTexturesSRV("Albedo", bronze.Albedo);
+	matBronze->AddTexturesSRV("NormalMap", bronze.Normal);
+	matBronze->AddTexturesSRV("RoughnessMap", bronze.Roughness);
+	matBronze->AddTexturesSRV("MetalnessMap", bronze.Metal);
+	matBronze->SetScale(DirectX::XMFLOAT2(2.0f, 2.0f));
 
 	matCobblestone->AddSampler("BasicSampler", pSampler);
-	matCobblestone->AddTexturesSRV("SurfaceTexture", pCobblestoneTexture);
-	matCobblestone->AddTexturesSRV("NormalMap", pCobblestoneNormalMap);
+	matCobblestone->AddTexturesSRV("Albedo", cobblestone.Albedo);
+	matCobblestone->AddTexturesSRV("NormalMap", cobblestone.Normal);
+	matCobblestone->AddTexturesSRV("RoughnessMap", cobblestone.Roughness);
+	matCobblestone->AddTexturesSRV("MetalnessMap", cobblestone.Metal);
 	matCobblestone->SetScale(DirectX::XMFLOAT2(1.0f, 1.0f));
 
-	// Creating the 3D models.
+	matScratch->AddSampler("BasicSampler", pSampler);
+	matScratch->AddTexturesSRV("Albedo", scratch.Albedo);
+	matScratch->AddTexturesSRV("NormalMap", scratch.Normal);
+	matScratch->AddTexturesSRV("RoughnessMap", scratch.Roughness);
+	matScratch->AddTexturesSRV("MetalnessMap", scratch.Metal);
+	matScratch->SetScale(DirectX::XMFLOAT2(1.0f, 1.0f));
+
+	matRust->AddSampler("BasicSampler", pSampler);
+	matRust->AddTexturesSRV("Albedo", rust.Albedo);
+	matRust->AddTexturesSRV("NormalMap", rust.Normal);
+	matRust->AddTexturesSRV("RoughnessMap", rust.Roughness);
+	matRust->AddTexturesSRV("MetalnessMap", rust.Metal);
+	matRust->SetScale(DirectX::XMFLOAT2(1.0f, 1.0f));
+
+	matWood->AddSampler("BasicSampler", pSampler);
+	matWood->AddTexturesSRV("Albedo", wood.Albedo);
+	matWood->AddTexturesSRV("NormalMap", wood.Normal);
+	matWood->AddTexturesSRV("RoughnessMap", wood.Roughness);
+	matWood->AddTexturesSRV("MetalnessMap", wood.Metal);
+	matWood->SetScale(DirectX::XMFLOAT2(1.0f, 1.0f));
+
+	matFloor->AddSampler("BasicSampler", pSampler);
+	matFloor->AddTexturesSRV("Albedo", floor.Albedo);
+	matFloor->AddTexturesSRV("NormalMap", floor.Normal);
+	matFloor->AddTexturesSRV("RoughnessMap", floor.Roughness);
+	matFloor->AddTexturesSRV("MetalnessMap", floor.Metal);
+	matFloor->SetScale(DirectX::XMFLOAT2(1.0f, 1.0f));
+
+	matRough->AddSampler("BasicSampler", pSampler);
+	matRough->AddTexturesSRV("Albedo", rough.Albedo);
+	matRough->AddTexturesSRV("NormalMap", rough.Normal);
+	matRough->AddTexturesSRV("RoughnessMap", rough.Roughness);
+	matRough->AddTexturesSRV("MetalnessMap", rough.Metal);
+	matRough->SetScale(DirectX::XMFLOAT2(1.0f, 1.0f));
+	#pragma endregion
+
+	// Loading the 3D models.
 	std::shared_ptr<Mesh> cube = std::make_shared<Mesh>(Mesh("Models/cube.graphics_obj"));
 	std::shared_ptr<Mesh> cylinder = std::make_shared<Mesh>(Mesh("Models/cylinder.graphics_obj"));
 	std::shared_ptr<Mesh> sphere = std::make_shared<Mesh>(Mesh("Models/sphere.graphics_obj"));
@@ -109,20 +173,21 @@ void Game::Initialize()
 	std::shared_ptr<Mesh> quadDoubleSided = std::make_shared<Mesh>(Mesh("Models/quad_double_sided.graphics_obj"));
 
 	// Controls the amount of sets of Entities are created.
-	int dAmountOfSets = 2;
+	int dAmountOfSets = 1;
 
 	// Instantiating the Entities.
 	for (int i = 0; i < dAmountOfSets; i++)
 	{
-		m_lEntities.push_back(Entity(cube, matCobblestone));
-		m_lEntities.push_back(Entity(cylinder, matCobblestone));
 		m_lEntities.push_back(Entity(sphere, matCobblestone));
-		m_lEntities.push_back(Entity(helix, matCobblestone));
-		m_lEntities.push_back(Entity(torus, matCobblestone));
-		m_lEntities.push_back(Entity(quadDoubleSided, matCobblestone));
-		m_lEntities.push_back(Entity(quad, matCobblestone));
+		m_lEntities.push_back(Entity(sphere, matRust));
+		m_lEntities.push_back(Entity(sphere, matScratch));
+		m_lEntities.push_back(Entity(sphere, matBronze));
+		m_lEntities.push_back(Entity(sphere, matWood));
+		m_lEntities.push_back(Entity(sphere, matFloor));
+		m_lEntities.push_back(Entity(sphere, matRough));
 	}
 
+	// Setting the locations of entities around the world.
 	for (int j = 0; j < dAmountOfSets; j++)
 	{
 		for (int i = 0; i < m_lEntities.size() / dAmountOfSets; i++)
@@ -135,22 +200,12 @@ void Game::Initialize()
 
 			// Setting the scale and spacing out the models.
 			current.SetScale(fUniformScale, fUniformScale, fUniformScale);
-			current.SetPosition((i * 1.25f) - 4.0f, -1.0f + j, 0.0f);
+			current.SetPosition((i * 0.55f) - 1.5f, -1.0f + j, 0.0f);
 			current.Rotate(XMFLOAT3(0.0f, 2.6f, 0.0f));
-
-			// Setting the proper materials.
-			if (j == 0)
-			{
-				m_lEntities[index].SetMaterial(matCobblestone);
-			}
-			else if (j == 1)
-			{
-				m_lEntities[index].SetMaterial(matRock);
-			}
 		}
 	}
 
-	// Creating the lights.
+	// Creating a bunch of lights
 	for (int i = 0; i < 5; i++)
 	{
 		Light currentLight = {};
@@ -159,7 +214,7 @@ void Game::Initialize()
 		if (i == 0)
 		{
 			currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
-			currentLight.Intensity = 0.6f;
+			currentLight.Intensity = 4.0f;
 			currentLight.Direction = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
 			currentLight.Color = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
 		}
@@ -167,7 +222,7 @@ void Game::Initialize()
 		else if (i == 1)
 		{
 			currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
-			currentLight.Intensity = 0.6f;
+			currentLight.Intensity = 4.0f;
 			currentLight.Direction = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f);
 			currentLight.Color = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
 		}
@@ -175,7 +230,7 @@ void Game::Initialize()
 		else if (i == 2)
 		{
 			currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
-			currentLight.Intensity = 0.6f;
+			currentLight.Intensity = 4.0f;
 			currentLight.Direction = DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f);
 			currentLight.Color = DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f);
 		}
@@ -189,18 +244,18 @@ void Game::Initialize()
 			currentLight.Position = DirectX::XMFLOAT3(0.25f, -1.0f, 0.0f);
 			currentLight.Range = 4.0f;
 		}
-		// Creating a spot light.
-		else if (i == 4)
-		{
-			currentLight.Type = LIGHT_TYPE_SPOT;
-			currentLight.Intensity = 2.5f;
-			currentLight.Direction = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
-			currentLight.Color = DirectX::XMFLOAT3(1.0f, 0.0f, 1.0f);
-			currentLight.Position = DirectX::XMFLOAT3(2.85f, 0.5f, 0.0f);
-			currentLight.SpotInnerAngle = DirectX::XMConvertToRadians(45.0f);
-			currentLight.SpotOuterAngle = DirectX::XMConvertToRadians(60.0f);
-			currentLight.Range = 2.0f;
-		}
+		//// Creating a spot light.
+		//else if (i == 4)
+		//{
+		//	currentLight.Type = LIGHT_TYPE_SPOT;
+		//	currentLight.Intensity = 2.5f;
+		//	currentLight.Direction = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
+		//	currentLight.Color = DirectX::XMFLOAT3(1.0f, 0.0f, 1.0f);
+		//	currentLight.Position = DirectX::XMFLOAT3(2.85f, 0.5f, 0.0f);
+		//	currentLight.SpotInnerAngle = DirectX::XMConvertToRadians(45.0f);
+		//	currentLight.SpotOuterAngle = DirectX::XMConvertToRadians(60.0f);
+		//	currentLight.Range = 2.0f;
+		//}
 
 		m_lLights.push_back(currentLight);
 	}

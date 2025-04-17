@@ -15,9 +15,6 @@ cbuffer ExternalData : register(b0)
     float2 offset;
     // - -
     float3 cameraPosition;
-    float roughness;
-    // - -
-    float3 ambient;
     float padding;
     // - -
     Light lights[MAX_LIGHT_COUNT];
@@ -25,7 +22,7 @@ cbuffer ExternalData : register(b0)
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
-    // Making sure that the normals are normalized.
+    // Making sure that the normals are normalized and that the ambient is black.
     input.normal = normalize(input.normal);
     
     // Getting the surface/albedo color from the Albedo texture.
@@ -42,10 +39,10 @@ float4 main(VertexToPixel input) : SV_TARGET
     input.normal = mul(unpackedNormal, TBN);
     
     // Getting the roughness value from the roughness map.
-    float roughness = RoughnessMap.Sample(BasicSampler, input.uv).r;
+    float roughness = RoughnessMap.Sample(BasicSampler, input.uv * scale + offset).r;
     
     // Getting the metalness valuse from the metalness map.
-    float metalness = MetalnessMap.Sample(BasicSampler, input.uv).r;
+    float metalness = MetalnessMap.Sample(BasicSampler, input.uv * scale + offset).r;
     
     // Specular color determination -----------------
     // Assume albedo texture is actually holding specular color where metalness == 1
@@ -53,19 +50,30 @@ float4 main(VertexToPixel input) : SV_TARGET
     // because of linear texture sampling, so we lerp the specular color to match
     float3 specularColor = lerp(F0_NON_METAL, albedoColor.rgb, metalness);
     
+    float3 total;
+    float3 toCamera = normalize(cameraPosition - input.worldPos);
     for (int i = 0; i < MAX_LIGHT_COUNT; i++)
     {
         Light currentLight = lights[i];
-        float fFresnel = 0.0f;
-    
+        float3 toLight = normalize(currentLight.Position - input.worldPos);
+        
+        // Calculating different light amounts.
+        float3 fFresnel;    
+        float diff = DiffusePBR(input.normal, toLight);
         float3 PBR = MicrofacetBRDF(
                     input.normal,
-                    normalize(currentLight.Position - input.worldPos),
-                    normalize(cameraPosition - input.worldPos),
+                    toLight,
+                    toCamera,
                     roughness,
-                    specularColor);
-
+                    specularColor,
+                    fFresnel);
+        
+        // Calculate diffuse with energy conservation, including cutting diffuse for metals
+        float3 balancedDiff = DiffuseEnergyConserve(diff, fFresnel, metalness);
+        
+        // Combing the total afflicted lighting.
+        total += (balancedDiff * albedoColor + PBR) * currentLight.Intensity * currentLight.Color;
     }
     
-	return float4(1.0f, 1.0f, 1.0f, 1.0f);
+	return float4(total, 1.0f);
 }

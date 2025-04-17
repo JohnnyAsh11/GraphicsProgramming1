@@ -1,4 +1,4 @@
-#include "GeneralLightingFunctions.hlsli"
+#include "LightingFunctions.hlsli"
 #define MAX_LIGHT_COUNT 5
 
 Texture2D SurfaceTexture : register(t0);    // 't' register is specifically for textures.

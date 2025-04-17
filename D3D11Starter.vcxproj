@@ -206,6 +206,7 @@
     <ClInclude Include="PathHelpers.h" />
     <ClInclude Include="SimpleShader.h" />
     <ClInclude Include="Sky.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="Window.h" />
@@ -278,7 +279,7 @@
     <Text Include="ImGui\LICENSE.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="GeneralLightingFunctions.hlsli" />
+    <None Include="LightingFunctions.hlsli" />
     <None Include="packages.config" />
     <None Include="PBRFunctions.hlsli" />
     <None Include="ShaderFunctions.hlsli" />
