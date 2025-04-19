@@ -10,24 +10,23 @@
 #include "SimpleShader.h"
 #include "Lights.h"
 #include "Sky.h"
+#include "ShadowManager.h"
 
 class Game
 {
 private:
 	float m_fBackgroundColor[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
-	//float m_fBackgroundColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	DirectX::XMFLOAT3 m_v3AmbientColor = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
-	//DirectX::XMFLOAT3 m_v3AmbientColor = DirectX::XMFLOAT3(0.3f, 0.3f, 0.3f);
 	bool m_bDemoVisibility;
 
 	std::vector<std::shared_ptr<Camera>> m_lCameras;
 	std::shared_ptr<Camera> m_pActiveCamera = nullptr;
-
 	std::vector<Light> m_lLights;
-
 	std::vector<Entity> m_lEntities;
-
-	Sky* m_pSkyBox;
+	
+	Sky* m_pSkyBox = nullptr;
+	Entity* m_pFloor = nullptr;
+	ShadowManager* m_pShadowManager = nullptr;
 
 public:
 	// Basic OOP setup

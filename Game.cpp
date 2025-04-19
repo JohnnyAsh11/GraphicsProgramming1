@@ -179,11 +179,11 @@ void Game::Initialize()
 	for (int i = 0; i < dAmountOfSets; i++)
 	{
 		m_lEntities.push_back(Entity(sphere, matCobblestone));
-		m_lEntities.push_back(Entity(sphere, matRust));
-		m_lEntities.push_back(Entity(sphere, matScratch));
-		m_lEntities.push_back(Entity(sphere, matBronze));
-		m_lEntities.push_back(Entity(sphere, matWood));
-		m_lEntities.push_back(Entity(sphere, matFloor));
+		m_lEntities.push_back(Entity(cylinder, matRust));
+		m_lEntities.push_back(Entity(helix, matScratch));
+		m_lEntities.push_back(Entity(torus, matBronze));
+		m_lEntities.push_back(Entity(helix, matWood));
+		m_lEntities.push_back(Entity(cylinder, matFloor));
 		m_lEntities.push_back(Entity(sphere, matRough));
 	}
 
@@ -205,60 +205,14 @@ void Game::Initialize()
 		}
 	}
 
-	// Creating a bunch of lights
-	for (int i = 0; i < 5; i++)
-	{
-		Light currentLight = {};
-
-		// Red light coming from the left.
-		if (i == 0)
-		{
-			currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
-			currentLight.Intensity = 4.0f;
-			currentLight.Direction = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
-			currentLight.Color = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
-		}
-		// Green light coming from above.
-		else if (i == 1)
-		{
-			currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
-			currentLight.Intensity = 4.0f;
-			currentLight.Direction = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f);
-			currentLight.Color = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
-		}
-		// Blue light coming from the right.
-		else if (i == 2)
-		{
-			currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
-			currentLight.Intensity = 4.0f;
-			currentLight.Direction = DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f);
-			currentLight.Color = DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f);
-		}
-		// Creating a point light.
-		else if (i == 3)
-		{
-			currentLight.Type = LIGHT_TYPE_POINT;
-			currentLight.Intensity = 2.0f;
-			currentLight.Direction = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
-			currentLight.Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
-			currentLight.Position = DirectX::XMFLOAT3(0.25f, -1.0f, 0.0f);
-			currentLight.Range = 4.0f;
-		}
-		//// Creating a spot light.
-		//else if (i == 4)
-		//{
-		//	currentLight.Type = LIGHT_TYPE_SPOT;
-		//	currentLight.Intensity = 2.5f;
-		//	currentLight.Direction = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
-		//	currentLight.Color = DirectX::XMFLOAT3(1.0f, 0.0f, 1.0f);
-		//	currentLight.Position = DirectX::XMFLOAT3(2.85f, 0.5f, 0.0f);
-		//	currentLight.SpotInnerAngle = DirectX::XMConvertToRadians(45.0f);
-		//	currentLight.SpotOuterAngle = DirectX::XMConvertToRadians(60.0f);
-		//	currentLight.Range = 2.0f;
-		//}
-
-		m_lLights.push_back(currentLight);
-	}
+	// Creating a light.
+	Light currentLight = {};
+	currentLight.Position = DirectX::XMFLOAT3(0.0f, 1000.0f, 0.0f);
+	currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
+	currentLight.Intensity = 2.0f;
+	currentLight.Direction = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
+	currentLight.Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
+	m_lLights.push_back(currentLight);
 
 	// Loading in the sky box.
 	m_pSkyBox = new Sky(cube, pSampler);
@@ -270,6 +224,14 @@ void Game::Initialize()
 		L"Textures/Skies/front.png",
 		L"Textures/Skies/back.png"
 	);
+
+	// Instantiating the floor.
+	m_pFloor = new Entity(quadDoubleSided, matWood);
+	m_pFloor->GetTransform().MoveAbsolute(0.0f, -3.0f, 0.0f);
+	m_pFloor->GetTransform().Scale(4.0f, 4.0f, 4.0f);
+
+	// Creating the shadow manager.
+	m_pShadowManager = new ShadowManager(currentLight.Direction);
 
 	// Initialize ImGui itself & platform/renderer backends
 	IMGUI_CHECKVERSION();
@@ -286,6 +248,8 @@ void Game::Initialize()
 Game::~Game()
 {
 	delete m_pSkyBox;
+	delete m_pFloor;
+	delete m_pShadowManager;
 
 	// ImGui clean up
 	ImGui_ImplDX11_Shutdown();
@@ -315,6 +279,11 @@ void Game::Update(float deltaTime, float totalTime)
 	for (unsigned int i = 0; i < m_lEntities.size(); i++)
 	{
 		m_lEntities[i].GetTransform().Rotate(XMFLOAT3(0.0f, deltaTime / 4, 0.0f));
+
+		if (i == 1 || i == 4)
+		{
+			m_lEntities[i].GetTransform().MoveAbsolute(0.0f, 0.0f, (sin(totalTime) * deltaTime * 2));
+		}
 	}
 
 	// Example input checking: Quit if the escape key is pressed
@@ -460,6 +429,12 @@ void Game::UpdateImGui(float deltaTime)
 		ImGui::TreePop();
 	}
 
+	if (ImGui::TreeNode("Shadow SRV"))
+	{
+		ImGui::Image((ImTextureID)m_pShadowManager->GetShadowSRV().Get(), ImVec2(512, 512));
+		ImGui::TreePop();
+	}
+
 	// Closing the sub window.
 	ImGui::End();
 }
@@ -469,10 +444,12 @@ void Game::UpdateImGui(float deltaTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
+	m_pShadowManager->Draw(m_lEntities);
+
 	// Clear the back buffer (erase what's on screen) and depth buffer
 	Graphics::Context->ClearRenderTargetView(Graphics::BackBufferRTV.Get(), m_fBackgroundColor);
 	Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-
+	
 	// Rendering the entities.
 	for (unsigned int i = 0; i < m_lEntities.size(); i++)
 	{
@@ -483,6 +460,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		m_lEntities[i].GetMaterial()->GetPixelShader()->SetData("lights", &m_lLights[0], sizeof(Light) * (int)m_lLights.size());
 		m_lEntities[i].Draw(m_pActiveCamera, totalTime);
 	}
+	
+	m_pFloor->Draw(m_pActiveCamera, totalTime);
 
 	// Rendering the sky box.
 	m_pSkyBox->Draw(m_pActiveCamera);

@@ -4,14 +4,14 @@
 
 Entity::Entity(std::shared_ptr<Mesh> a_pMesh, std::shared_ptr<Material> a_pMaterial)
 {
-	m_pMesh = std::make_shared<Mesh>(*a_pMesh);
-	m_pMaterial = std::make_shared<Material>(*a_pMaterial);
+	m_pMesh = a_pMesh;
+	m_pMaterial = a_pMaterial;
 	m_tTransform = Transform();
 }
 
 // Getters
 Transform& Entity::GetTransform() { return m_tTransform; }
-std::shared_ptr<Mesh> Entity::GetMesh() { return std::shared_ptr<Mesh>(); }
+std::shared_ptr<Mesh> Entity::GetMesh() { return m_pMesh; }
 std::shared_ptr<Material> Entity::GetMaterial() { return m_pMaterial; }
 
 // Setters
@@ -49,5 +49,4 @@ void Entity::Draw(std::shared_ptr<Camera> a_pCamera, float a_fTotalTime)
 
 	// Rendering the mesh to the window.
 	m_pMesh->Draw();
-
 }
