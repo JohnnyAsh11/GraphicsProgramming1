@@ -53,6 +53,7 @@ void Game::Initialize()
 	Graphics::Device.Get()->CreateSamplerState(&sampleDesc, &pSampler);
 
 	#pragma region Loading textures and setting materials.
+	std::vector<std::shared_ptr<Material>> lMaterials;
 	// Loading in the textures:
 	TextureSet cobblestone = {};
 	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), L"Textures/PBR/cobblestone_albedo.png", nullptr, &cobblestone.Albedo);
@@ -161,6 +162,14 @@ void Game::Initialize()
 	matRough->AddTexturesSRV("RoughnessMap", rough.Roughness);
 	matRough->AddTexturesSRV("MetalnessMap", rough.Metal);
 	matRough->SetScale(DirectX::XMFLOAT2(1.0f, 1.0f));
+
+	lMaterials.push_back(matCobblestone);
+	lMaterials.push_back(matBronze);
+	lMaterials.push_back(matScratch);
+	lMaterials.push_back(matRust);
+	lMaterials.push_back(matWood);
+	lMaterials.push_back(matFloor);
+	lMaterials.push_back(matRough);
 	#pragma endregion
 
 	// Loading the 3D models.
@@ -171,6 +180,46 @@ void Game::Initialize()
 	std::shared_ptr<Mesh> torus = std::make_shared<Mesh>(Mesh("Models/torus.graphics_obj"));
 	std::shared_ptr<Mesh> quad = std::make_shared<Mesh>(Mesh("Models/quad.graphics_obj"));
 	std::shared_ptr<Mesh> quadDoubleSided = std::make_shared<Mesh>(Mesh("Models/quad_double_sided.graphics_obj"));
+
+	// Creating a light.
+	Light currentLight = {};
+	currentLight.Position = DirectX::XMFLOAT3(0.0f, 20.0f, 0.0f);
+	currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
+	currentLight.Intensity = 2.0f;
+	currentLight.Direction = DirectX::XMFLOAT3(0.0f, -1.0f, 1.0f);
+	currentLight.Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
+	m_lLights.push_back(currentLight);
+	currentLight.Position = DirectX::XMFLOAT3(-20.0f, 0.0f, 0.0f);
+	currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
+	currentLight.Intensity = 2.0f;
+	currentLight.Direction = DirectX::XMFLOAT3(-1.0f, 0.0f, 1.0f);
+	currentLight.Color = DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f);
+	m_lLights.push_back(currentLight);
+
+	// Loading in the sky box.
+	m_pSkyBox = new Sky(cube, pSampler);
+	m_pSkyBox->CreateCubemap(
+		L"Textures/Skies/right.png",
+		L"Textures/Skies/left.png",
+		L"Textures/Skies/up.png",
+		L"Textures/Skies/down.png",
+		L"Textures/Skies/front.png",
+		L"Textures/Skies/back.png"
+	);
+
+	// Instantiating the floor.
+	m_pFloor = new Entity(quadDoubleSided, matWood);
+	m_pFloor->GetTransform().MoveAbsolute(0.0f, -3.0f, 0.0f);
+	m_pFloor->GetTransform().Scale(4.0f, 4.0f, 4.0f);
+
+	// Creating the shadow manager.
+	m_pShadowManager = new ShadowManager(DirectX::XMFLOAT3(0.0f, -1.0f, 1.0f));
+
+	// Giving all of the materials the shadow sampler.
+	for (int i = 0; i < lMaterials.size(); i++)
+	{
+		lMaterials[i]->AddSampler("ShadowSampler", m_pShadowManager->GetShadowSampler());
+	}
 
 	// Controls the amount of sets of Entities are created.
 	int dAmountOfSets = 1;
@@ -200,38 +249,10 @@ void Game::Initialize()
 
 			// Setting the scale and spacing out the models.
 			current.SetScale(fUniformScale, fUniformScale, fUniformScale);
-			current.SetPosition((i * 0.55f) - 1.5f, -1.0f + j, 0.0f);
+			current.SetPosition((i * 0.55f) - 1.5f, -1.0f + j, -2.5f);
 			current.Rotate(XMFLOAT3(0.0f, 2.6f, 0.0f));
 		}
 	}
-
-	// Creating a light.
-	Light currentLight = {};
-	currentLight.Position = DirectX::XMFLOAT3(0.0f, 1000.0f, 0.0f);
-	currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
-	currentLight.Intensity = 2.0f;
-	currentLight.Direction = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
-	currentLight.Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
-	m_lLights.push_back(currentLight);
-
-	// Loading in the sky box.
-	m_pSkyBox = new Sky(cube, pSampler);
-	m_pSkyBox->CreateCubemap(
-		L"Textures/Skies/right.png",
-		L"Textures/Skies/left.png",
-		L"Textures/Skies/up.png",
-		L"Textures/Skies/down.png",
-		L"Textures/Skies/front.png",
-		L"Textures/Skies/back.png"
-	);
-
-	// Instantiating the floor.
-	m_pFloor = new Entity(quadDoubleSided, matWood);
-	m_pFloor->GetTransform().MoveAbsolute(0.0f, -3.0f, 0.0f);
-	m_pFloor->GetTransform().Scale(4.0f, 4.0f, 4.0f);
-
-	// Creating the shadow manager.
-	m_pShadowManager = new ShadowManager(currentLight.Direction);
 
 	// Initialize ImGui itself & platform/renderer backends
 	IMGUI_CHECKVERSION();
@@ -368,7 +389,7 @@ void Game::UpdateImGui(float deltaTime)
 						// And displaying them in the UI.
 						//		Casting to a void ptr then a ImTextureID.
 						void* p = t.second.Get();
-						ImGui::Image((ImTextureID)p, ImVec2(200, 200));
+						ImGui::Image((ImTextureID)p, ImVec2(100, 100));
 					}
 					ImGui::TreePop();
 				}
@@ -449,7 +470,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Clear the back buffer (erase what's on screen) and depth buffer
 	Graphics::Context->ClearRenderTargetView(Graphics::BackBufferRTV.Get(), m_fBackgroundColor);
 	Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-	
+
 	// Rendering the entities.
 	for (unsigned int i = 0; i < m_lEntities.size(); i++)
 	{
@@ -458,6 +479,14 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		// Passing in light data.
 		m_lEntities[i].GetMaterial()->GetPixelShader()->SetData("lights", &m_lLights[0], sizeof(Light) * (int)m_lLights.size());
+
+		// Passing in shadow data.
+		m_lEntities[i].GetMaterial()->GetVertexShader()->SetMatrix4x4("lightView", m_pShadowManager->GetLightView());
+		m_lEntities[i].GetMaterial()->GetVertexShader()->SetMatrix4x4("lightProjection", m_pShadowManager->GetLightProjection());
+
+		// Adding the shadow map.
+		m_lEntities[i].GetMaterial()->AddTexturesSRV("ShadowMap", m_pShadowManager->GetShadowSRV());
+
 		m_lEntities[i].Draw(m_pActiveCamera, totalTime);
 	}
 	
@@ -481,6 +510,10 @@ void Game::Draw(float deltaTime, float totalTime)
 		1,
 		Graphics::BackBufferRTV.GetAddressOf(),
 		Graphics::DepthBufferDSV.Get());
+
+	// Unbinding all SRVs (the shadow map in particular) from the window.
+	ID3D11ShaderResourceView* nullSRVs[128] = {};
+	Graphics::Context->PSSetShaderResources(0, 128, nullSRVs);
 }
 
 

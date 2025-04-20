@@ -21,6 +21,7 @@ struct VertexToPixel
     float2 uv : TEXCOORD;
     float3 worldPos : POSITION;
     float3 tangent : TANGENT;
+    float4 shadowMapPos : SHADOW_POSITION;
 };
 
 struct Light

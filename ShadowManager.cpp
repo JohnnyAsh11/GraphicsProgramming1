@@ -4,7 +4,7 @@
 #include "Graphics.h"
 #include "PathHelpers.h"
 
-#define SHADOW_MAP_RESOLUTION 1024
+#define SHADOW_MAP_RESOLUTION 4096
 
 ShadowManager::ShadowManager(DirectX::XMFLOAT3 a_v3LightDirection)
 {
@@ -13,6 +13,7 @@ ShadowManager::ShadowManager(DirectX::XMFLOAT3 a_v3LightDirection)
 	vec = DirectX::XMVector3Normalize(vec);
 	DirectX::XMStoreFloat3(&a_v3LightDirection, vec);
 
+	// Initializing default values.
 	m_m4LightViewMatrix = DirectX::XMFLOAT4X4();
 	m_m4LightProjectionMatrix = DirectX::XMFLOAT4X4();	
 	
@@ -54,13 +55,34 @@ ShadowManager::ShadowManager(DirectX::XMFLOAT3 a_v3LightDirection)
 		&srvDesc,
 		m_pShadowSRV.GetAddressOf());
 
+	// Creating the shadow rasterizer.
+	D3D11_RASTERIZER_DESC shadowRastDesc = {};
+	shadowRastDesc.FillMode = D3D11_FILL_SOLID;
+	shadowRastDesc.CullMode = D3D11_CULL_BACK;
+	shadowRastDesc.DepthClipEnable = true;
+	shadowRastDesc.DepthBias = 1000;
+	shadowRastDesc.SlopeScaledDepthBias = 1.0f;
+	Graphics::Device->CreateRasterizerState(&shadowRastDesc, &m_pShadowRasterizer);
+
+	// Creating the shadow sampler for smoother shadow edges.
+	D3D11_SAMPLER_DESC shadowSampDesc = {};
+	shadowSampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+	shadowSampDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+	shadowSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSampDesc.BorderColor[0] = 1.0f;	// Note: Only need the first component!
+	Graphics::Device->CreateSamplerState(&shadowSampDesc, &m_pShadowSampler);
+
 	// Creating the position vector.
 	// TODO: This view matrix changes every time the light's position changes.
-	float dBackup = -20;
+	//		 Thankfully, Directional lights do not really change position often
+	//		 so I am carefully skipping this for now.
+	float dBackupAmount = -20;
 	DirectX::XMFLOAT3 v3 = DirectX::XMFLOAT3(
-								a_v3LightDirection.x * dBackup, 
-								a_v3LightDirection.y * dBackup, 
-								a_v3LightDirection.z * dBackup);
+								a_v3LightDirection.x * dBackupAmount, 
+								a_v3LightDirection.y * dBackupAmount, 
+								a_v3LightDirection.z * dBackupAmount);
 	DirectX::XMMATRIX lightView = DirectX::XMMatrixLookToLH(
 		DirectX::XMLoadFloat3(&v3),						// Position: "Backing up" 20 units from origin
 		DirectX::XMLoadFloat3(&a_v3LightDirection),		// Direction: light's direction
@@ -70,7 +92,7 @@ ShadowManager::ShadowManager(DirectX::XMFLOAT3 a_v3LightDirection)
 	DirectX::XMMATRIX lightProjection = DirectX::XMMatrixOrthographicLH(
 		fProjectionSize,
 		fProjectionSize,
-		1.0f,
+		0.0001f,
 		100.0f);
 
 	// Storing the calculated matrix values.
@@ -82,7 +104,7 @@ ShadowManager::ShadowManager(DirectX::XMFLOAT3 a_v3LightDirection)
 		Graphics::Device, Graphics::Context, FixPath(L"ShadowVertex.cso").c_str());
 }
 
-void ShadowManager::Draw(std::vector<Entity> a_lActiveEntities)
+void ShadowManager::Draw(std::vector<Entity>& a_lActiveEntities)
 {
 	// Clearing the shadow map.
 	Graphics::Context->ClearDepthStencilView(m_pShadowDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
@@ -100,6 +122,9 @@ void ShadowManager::Draw(std::vector<Entity> a_lActiveEntities)
 	viewport.Height = (float)SHADOW_MAP_RESOLUTION;
 	viewport.MaxDepth = 1.0f;
 	Graphics::Context->RSSetViewports(1, &viewport);
+	
+	// Setting the shadow rasterizer.
+	Graphics::Context->RSSetState(m_pShadowRasterizer.Get());
 
 	// Setting some of the shader data.
 	m_pVertexShader->SetShader();
@@ -107,7 +132,7 @@ void ShadowManager::Draw(std::vector<Entity> a_lActiveEntities)
 	m_pVertexShader->SetMatrix4x4("projection", m_m4LightProjectionMatrix);
 
 	// Loop and draw all entities.
-	for (auto& e : a_lActiveEntities)
+	for (Entity& e : a_lActiveEntities)
 	{
 		// Setting the world matrix and copying the buffer data over.
 		m_pVertexShader->SetMatrix4x4("world", e.GetTransform().GetWorldMatrix());
@@ -116,6 +141,9 @@ void ShadowManager::Draw(std::vector<Entity> a_lActiveEntities)
 		// Draw the mesh directly to avoid the entity's material.
 		e.GetMesh()->Draw();
 	}
+
+	// Unbinding the shadow rasterizer.
+	Graphics::Context->RSSetState(0);
 
 	// Reseting the pipeline for actual rendering.
 	viewport.Width = (float)Window::Width();
@@ -128,3 +156,6 @@ void ShadowManager::Draw(std::vector<Entity> a_lActiveEntities)
 }
 
 Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ShadowManager::GetShadowSRV() { return m_pShadowSRV; }
+Microsoft::WRL::ComPtr<ID3D11SamplerState> ShadowManager::GetShadowSampler(void) { return m_pShadowSampler; }
+DirectX::XMFLOAT4X4 ShadowManager::GetLightProjection(void) { return m_m4LightProjectionMatrix; }
+DirectX::XMFLOAT4X4 ShadowManager::GetLightView(void) { return m_m4LightViewMatrix; }

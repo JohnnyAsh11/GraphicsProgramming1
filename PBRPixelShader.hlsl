@@ -6,7 +6,10 @@ Texture2D Albedo : register(t0); // 't' register is specifically for textures.
 Texture2D NormalMap : register(t1);
 Texture2D RoughnessMap : register(t2);
 Texture2D MetalnessMap : register(t3);
+Texture2D ShadowMap : register(t4);
+
 SamplerState BasicSampler : register(s0); // 's' register is specifically for samplers.
+SamplerComparisonState ShadowSampler : register(s1);
 
 cbuffer ExternalData : register(b0)
 {
@@ -22,6 +25,22 @@ cbuffer ExternalData : register(b0)
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
+    // Perform the perspective divide (divide by W) ourselves
+    input.shadowMapPos /= input.shadowMapPos.w;
+    
+    // Convert the normalized device coordinates to UVs for sampling
+    float2 shadowUV = input.shadowMapPos.xy * 0.5f + 0.5f;
+    shadowUV.y = 1 - shadowUV.y; // Flip the Y
+    
+    // Grab the distances we need: light-to-pixel and closest-surface
+    float distToLight = input.shadowMapPos.z;
+    
+    // Get a ratio of comparison results using SampleCmpLevelZero()
+    float shadowAmount = ShadowMap.SampleCmpLevelZero(
+            ShadowSampler,
+            shadowUV,
+            distToLight).r;
+    
     // Making sure that the normals are normalized and that the ambient is black.
     input.normal = normalize(input.normal);
     
@@ -52,9 +71,10 @@ float4 main(VertexToPixel input) : SV_TARGET
     
     float3 total;
     float3 toCamera = normalize(cameraPosition - input.worldPos);
+    Light light = { };
     for (int i = 0; i < MAX_LIGHT_COUNT; i++)
     {
-        Light currentLight = lights[i];
+        Light currentLight = lights[i];        
         float3 toLight = normalize(currentLight.Position - input.worldPos);
         
         // Calculating different light amounts.
@@ -67,6 +87,12 @@ float4 main(VertexToPixel input) : SV_TARGET
                     roughness,
                     specularColor,
                     fFresnel);
+        
+        // For the first light, multiply by the shadow amount.
+        if (i == 0 && shadowAmount < 0.91f)
+        {
+            diff *= shadowAmount;
+        }
         
         // Calculate diffuse with energy conservation, including cutting diffuse for metals
         float3 balancedDiff = DiffuseEnergyConserve(diff, fFresnel, metalness);
