@@ -71,7 +71,6 @@ float4 main(VertexToPixel input) : SV_TARGET
     
     float3 total;
     float3 toCamera = normalize(cameraPosition - input.worldPos);
-    Light light = { };
     for (int i = 0; i < MAX_LIGHT_COUNT; i++)
     {
         Light currentLight = lights[i];        
