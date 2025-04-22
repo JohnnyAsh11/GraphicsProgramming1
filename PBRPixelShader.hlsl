@@ -74,10 +74,10 @@ float4 main(VertexToPixel input) : SV_TARGET
     for (int i = 0; i < MAX_LIGHT_COUNT; i++)
     {
         Light currentLight = lights[i];        
-        float3 toLight = normalize(currentLight.Position - input.worldPos);
         
         // Calculating different light amounts.
         float3 fFresnel;    
+        float3 toLight = normalize(currentLight.Position - input.worldPos);
         float diff = DiffusePBR(input.normal, toLight);
         float3 PBR = MicrofacetBRDF(
                     input.normal,
@@ -88,7 +88,7 @@ float4 main(VertexToPixel input) : SV_TARGET
                     fFresnel);
         
         // For the first light, multiply by the shadow amount.
-        if (i == 0 && shadowAmount < 0.91f)
+        if (i == 0)
         {
             diff *= shadowAmount;
         }
@@ -100,5 +100,5 @@ float4 main(VertexToPixel input) : SV_TARGET
         total += (balancedDiff * albedoColor + PBR) * currentLight.Intensity * currentLight.Color;
     }
     
-	return float4(total, 1.0f);
+    return pow(float4(total, 1.0f), 1/2.2f);
 }

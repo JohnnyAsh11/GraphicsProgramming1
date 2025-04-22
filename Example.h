@@ -10,8 +10,7 @@
 
 
 /*
-post processing pixel shader motion blur psuedocode.
-
+post processing pixel shader motion blur psuedocode:
 pixelWidth = 1.0f / windowWidth
 pixelHeight = 1.0f / windowHeight
 
@@ -26,4 +25,8 @@ for (int -blur; int < blur; int++)
 
 return float4(totalColor / sampleCount, 0.0f);
 
+
+Transparency:
+'discard;' in a pixel shader literally means just forget about this pixel altogether.
+clip function: clip(value); will discard a pixel if less than the passed in value.
 */
