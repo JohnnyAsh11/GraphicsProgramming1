@@ -185,16 +185,22 @@ void Game::Initialize()
 	Light currentLight = {};
 	currentLight.Position = DirectX::XMFLOAT3(0.0f, 20.0f, 0.0f);
 	currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
-	currentLight.Intensity = 2.0f;
+	currentLight.Intensity = 1.0f;
 	currentLight.Direction = DirectX::XMFLOAT3(0.0f, 1.0f, 1.0f);
 	currentLight.Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
 	m_lLights.push_back(currentLight);
-	//currentLight.Position = DirectX::XMFLOAT3(-20.0f, 0.0f, 0.0f);
-	//currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
-	//currentLight.Intensity = 2.0f;
-	//currentLight.Direction = DirectX::XMFLOAT3(-1.0f, 0.0f, 1.0f);
-	//currentLight.Color = DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f);
-	//m_lLights.push_back(currentLight);
+	currentLight.Position = DirectX::XMFLOAT3(-20.0f, 0.0f, 0.0f);
+	currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
+	currentLight.Intensity = 2.0f;
+	currentLight.Direction = DirectX::XMFLOAT3(-1.0f, 0.0f, 1.0f);
+	currentLight.Color = DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f);
+	m_lLights.push_back(currentLight);
+	currentLight.Position = DirectX::XMFLOAT3(0.0f, 20.0f, 0.0f);
+	currentLight.Type = LIGHT_TYPE_DIRECTIONAL;
+	currentLight.Intensity = 1.0f;
+	currentLight.Direction = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
+	currentLight.Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
+	m_lLights.push_back(currentLight);
 
 	// Loading in the sky box.
 	m_pSkyBox = new Sky(cube, pSampler);
