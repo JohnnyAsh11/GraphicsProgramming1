@@ -260,6 +260,15 @@ void Game::Initialize()
 		}
 	}
 
+	m_pPPManager = new PostProcessManager();
+	std::shared_ptr<SimplePixelShader> blur = std::make_shared<SimplePixelShader>(
+			Graphics::Device, Graphics::Context, FixPath(L"BlurPS.cso").c_str());
+	std::shared_ptr<SimplePixelShader> posterization = std::make_shared<SimplePixelShader>(
+			Graphics::Device, Graphics::Context, FixPath(L"PosterizationPS.cso").c_str());
+	m_pPPManager->AddPostProcess(new PostProcess(posterization));
+	m_pPPManager->AddPostProcess(new PostProcess(blur));
+
+
 	// Initialize ImGui itself & platform/renderer backends
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -294,6 +303,11 @@ void Game::OnResize()
 		{
 			m_lCameras[i]->UpdateProjection(Window::AspectRatio());
 		}
+	}
+	
+	if (m_pPPManager != nullptr)
+	{
+		m_pPPManager->OnResize();
 	}
 }
 
@@ -472,6 +486,7 @@ void Game::UpdateImGui(float deltaTime)
 void Game::Draw(float deltaTime, float totalTime)
 {
 	m_pShadowManager->Draw(m_lEntities);
+	m_pPPManager->PreRender(m_fBackgroundColor);
 
 	// Clear the back buffer (erase what's on screen) and depth buffer
 	Graphics::Context->ClearRenderTargetView(Graphics::BackBufferRTV.Get(), m_fBackgroundColor);
@@ -500,6 +515,9 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	// Rendering the sky box.
 	m_pSkyBox->Draw(m_pActiveCamera);
+
+	// Post processing effects.
+	m_pPPManager->PostRender();
 
 	// Rendering ImGui
 	ImGui::Render();

@@ -11,6 +11,7 @@
 #include "Lights.h"
 #include "Sky.h"
 #include "ShadowManager.h"
+#include "PostProcessManager.h"
 
 class Game
 {
@@ -23,10 +24,12 @@ private:
 	std::shared_ptr<Camera> m_pActiveCamera = nullptr;
 	std::vector<Light> m_lLights;
 	std::vector<Entity> m_lEntities;
+
 	
 	Sky* m_pSkyBox = nullptr;
 	Entity* m_pFloor = nullptr;
 	ShadowManager* m_pShadowManager = nullptr;
+	PostProcessManager* m_pPPManager = nullptr;
 
 public:
 	// Basic OOP setup
