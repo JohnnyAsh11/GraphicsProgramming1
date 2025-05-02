@@ -21,15 +21,15 @@ PostProcessManager::PostProcessManager()
 
 PostProcessManager::~PostProcessManager()
 {
-	for (int i = 0; i < m_lPostProcesses.size(); i++)
+	for (std::pair p : m_lPostProcesses)
 	{
-		delete m_lPostProcesses[i];
+		delete p.second;
 	}
 }
 
-void PostProcessManager::AddPostProcess(PostProcess* a_pPostProcess)
+void PostProcessManager::AddPostProcess(PostProcessType a_dUniqueEnum, PostProcess* a_pPostProcess)
 {
-	m_lPostProcesses.push_back(a_pPostProcess);
+	m_lPostProcesses.insert({ a_dUniqueEnum, a_pPostProcess });
 }
 
 void PostProcessManager::ClearPostProcesses()
@@ -39,37 +39,51 @@ void PostProcessManager::ClearPostProcesses()
 
 void PostProcessManager::PreRender(float a_fBackgroundColor[4])
 {
-	for (int i = 0; i < m_lPostProcesses.size(); i++)
+	// Skip if there are no active post processes.
+	if (m_dActivePP == PostProcessType::None) return;
+
+	for (std::pair p : m_lPostProcesses)
 	{
-		m_lPostProcesses[i]->PreRender(a_fBackgroundColor);
+		// Skipping all but the active post process effect.
+		if (m_dActivePP != p.first) continue;
+
+		p.second->PreRender(a_fBackgroundColor);
 	}
 }
 
 void PostProcessManager::PostRender()
 {
-	for (int i = 0; i < m_lPostProcesses.size(); i++)
+	// Skip if there are no active post processes.
+	if (m_dActivePP == PostProcessType::None) return;
+
+	for (std::pair p : m_lPostProcesses)
 	{
-		m_lPostProcesses[i]->PostRender(m_pVertexShader, m_pSampler);
+		// Skipping all but the active post process effect.
+		if (m_dActivePP != p.first) continue;
+
+		p.second->PostRender(m_pVertexShader, m_pSampler);
 	}
 }
 
+void PostProcessManager::SetActiveProcess(PostProcessType a_dPostProcess) { m_dActivePP = a_dPostProcess; }
+
 void PostProcessManager::OnResize()
 {
-	std::vector<PostProcess*> lNewProcesses = std::vector<PostProcess*>();
+	std::unordered_map<PostProcessType, PostProcess*> lNewProcesses = std::unordered_map<PostProcessType, PostProcess*>();
 
-	for (int i = 0; i < m_lPostProcesses.size(); i++)
+	for (std::pair p : m_lPostProcesses)
 	{
 		// Reinstantiating the PostProcesses with the same PixelShader.
 		// Should inheritly resize properly.
-		std::shared_ptr<SimplePixelShader> pPS = m_lPostProcesses[i]->GetPixelShader();
-		lNewProcesses.push_back(new PostProcess(pPS));
+		std::shared_ptr<SimplePixelShader> pPS = p.second->GetPixelShader();
+		lNewProcesses.insert({ p.first, new PostProcess(pPS) });
 	}
 
 	// Clearing memory.
-	for (int i = 0; i < m_lPostProcesses.size(); i++)
+	for (std::pair p : m_lPostProcesses)
 	{
-		delete m_lPostProcesses[i];
-		m_lPostProcesses[i] = nullptr;
+		delete p.second;
+		p.second = nullptr;
 	}
 
 	// Setting the new list of post procresses.

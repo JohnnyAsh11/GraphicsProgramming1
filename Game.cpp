@@ -265,8 +265,8 @@ void Game::Initialize()
 			Graphics::Device, Graphics::Context, FixPath(L"BlurPS.cso").c_str());
 	std::shared_ptr<SimplePixelShader> posterization = std::make_shared<SimplePixelShader>(
 			Graphics::Device, Graphics::Context, FixPath(L"PosterizationPS.cso").c_str());
-	m_pPPManager->AddPostProcess(new PostProcess(posterization));
-	m_pPPManager->AddPostProcess(new PostProcess(blur));
+	m_pPPManager->AddPostProcess(PostProcessType::Blur, new PostProcess(blur));
+	m_pPPManager->AddPostProcess(PostProcessType::Posterization, new PostProcess(posterization));
 
 
 	// Initialize ImGui itself & platform/renderer backends
@@ -470,9 +470,28 @@ void Game::UpdateImGui(float deltaTime)
 		ImGui::TreePop();
 	}
 
+	// Displaying the shadow map.
 	if (ImGui::TreeNode("Shadow SRV"))
 	{
 		ImGui::Image((ImTextureID)m_pShadowManager->GetShadowSRV().Get(), ImVec2(512, 512));
+		ImGui::TreePop();
+	}
+
+	// Allowing the user to select the active post process.
+	if (ImGui::TreeNode("Post Processes"))
+	{
+		if (ImGui::Button("Blur"))
+		{
+			m_pPPManager->SetActiveProcess(PostProcessType::Blur);
+		}
+		else if (ImGui::Button("Posterization"))
+		{
+			m_pPPManager->SetActiveProcess(PostProcessType::Posterization);
+		}
+		else if (ImGui::Button("None"))
+		{
+			m_pPPManager->SetActiveProcess(PostProcessType::None);
+		}
 		ImGui::TreePop();
 	}
 
